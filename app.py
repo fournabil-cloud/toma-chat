@@ -114,14 +114,11 @@ with st.sidebar:
 
     st.divider()
     
-    # الاعتماد على أسماء النماذج الرسمية المعترف بها لدى Google AI API
-  # تحديد القائمة بأسماء النماذج المعتمدة فقط
-    available_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
-    
+    # الاعتماد الحصري على النماذج الرسمية النشطة
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        available_models,
-        index=0, # يضمن أن التطبيق سيبدأ دائمًا بـ gemini-2.0-flash بشكل افتراضي
+        ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
+        key="model_selector_v6_1",
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -157,7 +154,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v5.2**")
+    st.markdown("🔹 **TOMA CHAT Pro v6.1**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -260,6 +257,7 @@ if api_key_input:
                             st.markdown(bot_response)
                             messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": generated_img})
                         except Exception as img_err:
+                            # تم استبدال الاسم الثابت المرفوض بـ model_choice المختار من القائمة
                             response = client.models.generate_content(
                                 model=model_choice,
                                 contents=[prompt],
