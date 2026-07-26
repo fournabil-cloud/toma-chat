@@ -114,7 +114,6 @@ with st.sidebar:
 
     st.divider()
     
-    # الاعتماد الحصري على نماذج gemini-2.5 لمنع خطأ 404 تماماً
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
         ["gemini-2.5-flash", "gemini-2.5-pro"],
@@ -147,13 +146,13 @@ with st.sidebar:
         
         st.download_button(
             label="📥 تحميل المحادثة (.txt)",
-            data=chat_txt,
+            data=chat_txt.encode('utf-8'), # ترميز آمن يمنع خطأ الـ ASCII تماماً
             file_name=f"{st.session_state.current_session}.txt",
             mime="text/plain"
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v5.0**")
+    st.markdown("🔹 **TOMA CHAT Pro v5.1**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -203,7 +202,8 @@ if api_key_input:
                 if message["role"] == "assistant":
                     if st.button(f"🔊 استماع للرد #{idx}", key=f"tts_{idx}"):
                         try:
-                            tts = gtts.gTTS(text=message["content"], lang='ar')
+                            # حماية استدعاء الصوت من أخطاء الترميز
+                            tts = gtts.gTTS(text=str(message["content"]), lang='ar', slow=False)
                             temp_audio = "temp_audio.mp3"
                             tts.save(temp_audio)
                             audio_file = open(temp_audio, 'rb')
