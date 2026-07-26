@@ -114,10 +114,10 @@ with st.sidebar:
 
     st.divider()
     
-    # تحديث النماذج المتوافقة تماماً مع الإصدار الأحدث من المكتبة
+    # تم تصحيح أسماء النماذج هنا لتتوافق مع الإصدار الأحدث من المكتبة
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.5-flash", "gemini-2.5-pro"],
+        ["gemini-2.0-flash", "gemini-1.5-flash"], # النماذج الأحدث والمستقرة
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -153,7 +153,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v4.3**")
+    st.markdown("🔹 **TOMA CHAT Pro v4.4**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -184,6 +184,7 @@ with col_q4:
 # --- المنطق الأساسي للدردشة ---
 if api_key_input:
     try:
+        # تهيئة العميل باستخدام المكتبة الحديثة
         client = genai.Client(api_key=api_key_input)
         system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
 
@@ -236,6 +237,7 @@ if api_key_input:
                 if is_image_request:
                     with st.spinner("جاري توليد الصورة بواسطة الذكاء الاصطناعي..."):
                         try:
+                            # استخدام نموذج Imagen لتوليد الصور
                             result = client.models.generate_images(
                                 model='imagen-3.0-generate-002',
                                 prompt=prompt,
@@ -256,6 +258,7 @@ if api_key_input:
                             st.markdown(bot_response)
                             messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": generated_img})
                         except Exception as img_err:
+                            # في حال لم يكن مفتاح المستخدم يدعم הـ Imagen بشكل مباشر، نلجأ للرد النصي الذكي البديل
                             response = client.models.generate_content(
                                 model=model_choice,
                                 contents=[prompt],
