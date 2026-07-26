@@ -4,6 +4,7 @@ from PIL import Image
 import gtts
 import os
 import base64
+from io import BytesIO
 
 # 1. إعداد صفحة التطبيق
 st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="centered")
@@ -113,9 +114,10 @@ with st.sidebar:
 
     st.divider()
     
+    # تصحيح أسماء النماذج لتجنب خطأ 404
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.5-flash", "gemini-2.0-flash"],
+        ["gemini-1.5-flash", "gemini-1.5-pro"],
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -151,7 +153,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v4.0**")
+    st.markdown("🔹 **TOMA CHAT Pro v4.1**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -228,14 +230,12 @@ if api_key_input:
                     st.image(img_to_send, caption="الصورة المرفقة", width=250)
                 st.markdown(prompt)
 
-            # التحقق إذا كان المستخدم يطلب توليد صورة (يبدأ بـ "ارسم" أو "توليد صورة" أو "generate image")
             is_image_request = any(word in prompt.lower() for word in ["ارسم", "صورة لـ", "توليد صورة", "generate image", "draw"])
 
             with st.chat_message("assistant"):
                 if is_image_request:
                     with st.spinner("جاري توليد الصورة بواسطة الذكاء الاصطناعي..."):
                         try:
-                            # استخدام نموذج Imagen لتوليد الصور
                             result = client.models.generate_images(
                                 model='imagen-3.0-generate-002',
                                 prompt=prompt,
@@ -256,7 +256,6 @@ if api_key_input:
                             st.markdown(bot_response)
                             messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": generated_img})
                         except Exception as img_err:
-                            # في حال لم يكن مفتاح المستخدم يدعم الـ Imagen بشكل مباشر، نلجأ للرد النصي الذكي البديل
                             response = client.models.generate_content(
                                 model=model_choice,
                                 contents=[prompt],
