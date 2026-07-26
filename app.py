@@ -9,7 +9,7 @@ from io import BytesIO
 # 1. إعداد صفحة التطبيق
 st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="centered")
 
-# 2. إعدادات الثيم والوضع (داكن / فاتح)
+# 2. إعدادات الثيم
 if "theme" not in st.session_state:
     st.session_state.theme = "داكن (Dark)"
 
@@ -83,7 +83,7 @@ if "sessions" not in st.session_state:
 if "current_session" not in st.session_state:
     st.session_state.current_session = "محادثة جديدة 1"
 
-# --- الشريط الجانبي للإعدادات والتحكم المتطور ---
+# --- الشريط الجانبي للإعدادات ---
 with st.sidebar:
     st.header("⚙️ إعدادات TOMA")
     
@@ -114,11 +114,11 @@ with st.sidebar:
 
     st.divider()
     
-    # الاعتماد الحصري على النماذج الرسمية النشطة
+    # خيارات النماذج الآمنة
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
         ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
-        key="model_selector_v6_1",
+        key="model_choice_v7",
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -154,7 +154,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v6.1**")
+    st.markdown("🔹 **TOMA CHAT Pro v7.0**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -164,7 +164,28 @@ persona_prompts = {
     "مختصر ومباشر جداً": "كن مختصراً ومباشراً قدر الإمكان، دون حشو أو إطالة."
 }
 
-# --- واجهة قوالب الأسئلة السريعة (Quick Prompts) ---
+# دالة ذكية للاتصال بالنموذج مع إيجاد بديل تلقائي في حال عدم توفره
+def generate_gemini_response(client, preferred_model, contents, system_instruction):
+    fallback_models = [preferred_model, "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+    # إزالة التكرار مع الحفاظ على الترتيب
+    seen = set()
+    models_to_try = [x for x in fallback_models if not (x in seen or seen.add(x))]
+    
+    last_exception = None
+    for m in models_to_try:
+        try:
+            res = client.models.generate_content(
+                model=m,
+                contents=contents,
+                config={'system_instruction': system_instruction}
+            )
+            return res.text
+        except Exception as err:
+            last_exception = err
+            continue
+    raise last_exception
+
+# --- واجهة قوالب الأسئلة السريعة ---
 st.markdown("##### 🚀 اختصارات سريعة:")
 col_q1, col_q2, col_q3, col_q4 = st.columns(4)
 quick_prompt_selected = None
@@ -257,13 +278,7 @@ if api_key_input:
                             st.markdown(bot_response)
                             messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": generated_img})
                         except Exception as img_err:
-                            # تم استبدال الاسم الثابت المرفوض بـ model_choice المختار من القائمة
-                            response = client.models.generate_content(
-                                model=model_choice,
-                                contents=[prompt],
-                                config={'system_instruction': system_instruction}
-                            )
-                            bot_response = response.text
+                            bot_response = generate_gemini_response(client, model_choice, [prompt], system_instruction)
                             st.markdown(bot_response)
                             messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": None})
                 else:
@@ -272,15 +287,7 @@ if api_key_input:
                         if img_to_send is not None:
                             contents.insert(0, img_to_send)
 
-                        response = client.models.generate_content(
-                            model=model_choice,
-                            contents=contents,
-                            config={
-                                'system_instruction': system_instruction
-                            }
-                        )
-                        
-                        bot_response = response.text
+                        bot_response = generate_gemini_response(client, model_choice, contents, system_instruction)
                         st.markdown(bot_response)
                         
                         resp_words = len(bot_response.split())
