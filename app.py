@@ -114,10 +114,10 @@ with st.sidebar:
 
     st.divider()
     
-    # تصحيح أسماء النماذج لتجنب خطأ 404 (تم استخدام أحدث الإصدارات)
+    # تحديث النماذج المتوافقة تماماً مع الإصدار الأحدث من المكتبة
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-1.5-flash", "gemini-1.5-pro"],
+        ["gemini-2.5-flash", "gemini-2.5-pro"],
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -153,7 +153,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v4.2**")
+    st.markdown("🔹 **TOMA CHAT Pro v4.3**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
