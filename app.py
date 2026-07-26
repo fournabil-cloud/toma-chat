@@ -63,10 +63,11 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
+    # أسماء النماذج المعتمدة رسمياً في مكتبة google-genai الحديثة
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
-        key="model_v_stable_final"
+        ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro"],
+        key="model_v10_official"
     )
 
     persona_choice = st.selectbox(
@@ -94,7 +95,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v9.0**")
+    st.markdown("🔹 **TOMA CHAT Pro v10.0**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -105,7 +106,6 @@ persona_prompts = {
 }
 
 if api_key_input:
-    # إزالة أي مسافات زائدة من المفتاح تلقائياً
     clean_api_key = api_key_input.strip()
     try:
         client = genai.Client(api_key=clean_api_key)
@@ -139,7 +139,6 @@ if api_key_input:
                         contents.append(img_to_send)
                     contents.append(prompt)
 
-                    # استدعاء مباشر ومستقر للنموذج المختار
                     response = client.models.generate_content(
                         model=model_choice,
                         contents=contents,
