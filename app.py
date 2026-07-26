@@ -59,12 +59,12 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
-    # الاعتماد على النموذج النشط والمستقر المتاح لجميع الحسابات
-  model_choice = st.selectbox(
-    "اختر نموذج الذكاء الاصطناعي:",
-    ["gemini-2.0-flash-lite", "gemini-2.0-flash"],
-    key="model_v2026_lite"
-)
+    model_choice = st.selectbox(
+        "اختر نموذج الذكاء الاصطناعي:",
+        ["gemini-2.0-flash-lite", "gemini-2.0-flash"],
+        key="model_v2026_fixed_indent"
+    )
+
     persona_choice = st.selectbox(
         "اختر شخصية ونمط TOMA:",
         ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"]
@@ -116,7 +116,7 @@ if api_key_input:
                     contents.append(prompt)
 
                     response = client.models.generate_content(
-                        model="gemini-2.0-flash",
+                        model=model_choice,
                         contents=contents,
                         config={'system_instruction': system_instruction}
                     )
