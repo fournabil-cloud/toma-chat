@@ -86,12 +86,10 @@ if "current_session" not in st.session_state:
 with st.sidebar:
     st.header("⚙️ إعدادات TOMA")
     
-    # حقل آمن لإدخال المفتاح
     api_key_input = st.text_input("أدخل مفتاح Google API Key:", type="password", help="احصل على مفتاحك المجاني من Google AI Studio")
 
     st.divider()
 
-    # التبديل بين الثيمات
     new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if st.session_state.theme == "داكن (Dark)" else 1)
     if new_theme != st.session_state.theme:
         st.session_state.theme = new_theme
@@ -99,7 +97,6 @@ with st.sidebar:
 
     st.divider()
 
-    # إدارة المحادثات السابقة
     st.subheader("💬 المحادثات المحفوظة")
     session_names = list(st.session_state.sessions.keys())
     selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session))
@@ -116,10 +113,10 @@ with st.sidebar:
 
     st.divider()
     
-    # استخدام النماذج المستقرة والمتوافقة تماماً مع المكتبة الجديدة
+    # استخدام أحدث النماذج المعتمدة
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.5-flash", "gemini-1.5-flash"],
+        ["gemini-3.5-flash", "gemini-2.0-flash"],
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -140,7 +137,6 @@ with st.sidebar:
         st.session_state.sessions[st.session_state.current_session] = []
         st.rerun()
 
-    # تصدير المحادثة كملف نصي
     current_messages = st.session_state.sessions[st.session_state.current_session]
     if current_messages:
         chat_txt = ""
@@ -192,7 +188,6 @@ if api_key_input:
 
         messages = st.session_state.sessions[st.session_state.current_session]
 
-        # عرض الرسائل السابقة
         for idx, message in enumerate(messages):
             with st.chat_message(message["role"]):
                 if "image" in message and message["image"] is not None:
@@ -202,7 +197,6 @@ if api_key_input:
                 words_count = len(message["content"].split())
                 st.markdown(f'<div class="word-counter">عدد الكلمات: {words_count}</div>', unsafe_allow_html=True)
                 
-                # إضافة زر الاستماع الصوتي للردود
                 if message["role"] == "assistant":
                     if st.button(f"🔊 استماع للرد #{idx}", key=f"tts_{idx}"):
                         try:
@@ -219,7 +213,6 @@ if api_key_input:
 
         uploaded_file = st.file_uploader("📷 رفع صورة لتحليلها (اختياري):", type=["jpg", "jpeg", "png"])
 
-        # استقبال رسالة المستخدم
         chat_input_val = st.chat_input("اكتب رسالتك هنا...")
         prompt = quick_prompt_selected if quick_prompt_selected else chat_input_val
 
