@@ -114,9 +114,10 @@ with st.sidebar:
 
     st.divider()
     
+    # الاعتماد على أسماء النماذج الرسمية المعترف بها لدى Google AI API
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.5-flash", "gemini-2.5-pro"],
+        ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -146,13 +147,13 @@ with st.sidebar:
         
         st.download_button(
             label="📥 تحميل المحادثة (.txt)",
-            data=chat_txt.encode('utf-8'), # ترميز آمن يمنع خطأ الـ ASCII تماماً
+            data=chat_txt.encode('utf-8'),
             file_name=f"{st.session_state.current_session}.txt",
             mime="text/plain"
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v5.1**")
+    st.markdown("🔹 **TOMA CHAT Pro v5.2**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -202,7 +203,6 @@ if api_key_input:
                 if message["role"] == "assistant":
                     if st.button(f"🔊 استماع للرد #{idx}", key=f"tts_{idx}"):
                         try:
-                            # حماية استدعاء الصوت من أخطاء الترميز
                             tts = gtts.gTTS(text=str(message["content"]), lang='ar', slow=False)
                             temp_audio = "temp_audio.mp3"
                             tts.save(temp_audio)
