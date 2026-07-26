@@ -1,9 +1,6 @@
 import streamlit as st
 from google import genai
 from PIL import Image
-import gtts
-import base64
-from io import BytesIO
 
 st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="centered")
 
@@ -26,7 +23,6 @@ st.markdown(f"""
         [data-testid="stChatMessageAssistant"] {{ background-color: {chat_bg}; color: {text_color}; }}
         .stButton > button {{ background-color: #19C37D; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; width: 100%; }}
         .stButton > button:hover {{ background-color: #1A7F64; }}
-        .word-counter {{ font-size: 11px; color: #888; text-align: left; margin-top: 5px; }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -63,11 +59,11 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
-    # أسماء النماذج المعتمدة رسمياً في مكتبة google-genai الحديثة
+    # الاعتماد على النموذج النشط والمستقر المتاح لجميع الحسابات
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro"],
-        key="model_v10_official"
+        ["gemini-2.0-flash"],
+        key="model_v2026_fixed"
     )
 
     persona_choice = st.selectbox(
@@ -80,27 +76,10 @@ with st.sidebar:
         st.session_state.sessions[st.session_state.current_session] = []
         st.rerun()
 
-    current_messages = st.session_state.sessions[st.session_state.current_session]
-    if current_messages:
-        chat_txt = ""
-        for m in current_messages:
-            role = "المستخدم" if m["role"] == "user" else "TOMA"
-            chat_txt += f"{role}: {m['content']}\n" + "-"*40 + "\n"
-        
-        st.download_button(
-            label="📥 تحميل المحادثة (.txt)",
-            data=chat_txt.encode('utf-8'),
-            file_name=f"{st.session_state.current_session}.txt",
-            mime="text/plain"
-        )
-
-    st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v10.0**")
-
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
     "خبير برمجة وتقنية (محترف)": "أنت خبير برمجة وتقنية محترف، قدم أكواد نظيفة، مشروحة بدقة.",
-    "كاتب محتوى ومبدع": "أنت كاتُب محتوى ومبدع محترف، اكتب بصياغة جذابة، بليغة، ومؤثرة.",
+    "كاتب محتوى ومبدع": "أنت كاتب محتوى ومبدع محترف، اكتب بصياغة جذابة، بليغة، ومؤثرة.",
     "مستشار تسويق وأعمال": "أنت مستشار تسويق وأعمال، قدم استراتيجيات ذكية وحلول عملية لنمو المشاريع.",
     "مختصر ومباشر جداً": "كن مختصراً ومباشراً قدر الإمكان، دون حشو أو إطالة."
 }
@@ -116,8 +95,6 @@ if api_key_input:
             with st.chat_message(message["role"]):
                 if "image" in message and message["image"] is not None:
                     st.image(message["image"], caption="الصورة المرفقة", width=250)
-                if "generated_image" in message and message["generated_image"] is not None:
-                    st.image(message["generated_image"], caption="الصورة المولدة", width=400)
                 st.markdown(message["content"])
 
         uploaded_file = st.file_uploader("📷 رفع صورة لتحليلها (اختياري):", type=["jpg", "jpeg", "png"])
@@ -125,7 +102,7 @@ if api_key_input:
 
         if prompt:
             img_to_send = Image.open(uploaded_file) if uploaded_file else None
-            messages.append({"role": "user", "content": prompt, "image": img_to_send, "generated_image": None})
+            messages.append({"role": "user", "content": prompt, "image": img_to_send})
             
             with st.chat_message("user"):
                 if img_to_send:
@@ -140,14 +117,14 @@ if api_key_input:
                     contents.append(prompt)
 
                     response = client.models.generate_content(
-                        model=model_choice,
+                        model="gemini-2.0-flash",
                         contents=contents,
                         config={'system_instruction': system_instruction}
                     )
                     
                     bot_response = response.text
                     st.markdown(bot_response)
-                    messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": None})
+                    messages.append({"role": "assistant", "content": bot_response, "image": None})
             st.rerun()
 
     except Exception as e:
