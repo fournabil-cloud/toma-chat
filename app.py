@@ -114,10 +114,10 @@ with st.sidebar:
 
     st.divider()
     
-    # تم تصحيح أسماء النماذج هنا لتتوافق مع الإصدار الأحدث من المكتبة
+    # تم تحديث أسماء النماذج بالكامل لتتوافق مع الإصدار الأحدث من المكتبة (gemini-2.0 و gemini-1.5)
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.0-flash", "gemini-1.5-flash"], # النماذج الأحدث والمستقرة
+        ["gemini-2.0-flash", "gemini-2.0-pro-exp", "gemini-1.5-flash"],
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -153,7 +153,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v4.4**")
+    st.markdown("🔹 **TOMA CHAT Pro v4.5**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -237,8 +237,8 @@ if api_key_input:
                 if is_image_request:
                     with st.spinner("جاري توليد الصورة بواسطة الذكاء الاصطناعي..."):
                         try:
-                            # استخدام نموذج Imagen لتوليد الصور
-                            result = client.models.generate_images(
+                            # استخدام نموذج Imagen لتوليد الصور عبر مكتبة google-genai الحديثة
+                            response_gen = client.models.generate_images(
                                 model='imagen-3.0-generate-002',
                                 prompt=prompt,
                                 config=dict(
@@ -249,7 +249,7 @@ if api_key_input:
                                 )
                             )
                             generated_img = None
-                            for generated_image in result.generated_images:
+                            for generated_image in response_gen.generated_images:
                                 image = Image.open(BytesIO(generated_image.image.image_bytes))
                                 generated_img = image
                                 st.image(image, caption="الصورة المولدة بواسطة TOMA", width=400)
@@ -258,7 +258,7 @@ if api_key_input:
                             st.markdown(bot_response)
                             messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": generated_img})
                         except Exception as img_err:
-                            # في حال لم يكن مفتاح المستخدم يدعم הـ Imagen بشكل مباشر، نلجأ للرد النصي الذكي البديل
+                            # في حال لم يكن مفتاح المستخدم يدعم الـ Imagen، نلجأ للرد النصي الذكي البديل
                             response = client.models.generate_content(
                                 model=model_choice,
                                 contents=[prompt],
