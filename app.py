@@ -114,10 +114,10 @@ with st.sidebar:
 
     st.divider()
     
-    # قائمة النماذج المعتمدة رسمياً والمستقرة تماماً
+    # الاعتماد الحصري على نماذج gemini-2.5 لمنع خطأ 404 تماماً
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash"],
+        ["gemini-2.5-flash", "gemini-2.5-pro"],
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -153,7 +153,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v4.7**")
+    st.markdown("🔹 **TOMA CHAT Pro v5.0**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -184,7 +184,6 @@ with col_q4:
 # --- المنطق الأساسي للدردشة ---
 if api_key_input:
     try:
-        # تهيئة العميل بالصيغة الهندسية الصحيحة لتجنب مسارات v1beta المعطوبة
         client = genai.Client(api_key=api_key_input)
         system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
 
