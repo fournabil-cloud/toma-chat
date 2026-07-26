@@ -115,9 +115,13 @@ with st.sidebar:
     st.divider()
     
     # الاعتماد على أسماء النماذج الرسمية المعترف بها لدى Google AI API
+  # تحديد القائمة بأسماء النماذج المعتمدة فقط
+    available_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+    
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
+        available_models,
+        index=0, # يضمن أن التطبيق سيبدأ دائمًا بـ gemini-2.0-flash بشكل افتراضي
         help="اختر النموذج المناسب للتحادث."
     )
 
