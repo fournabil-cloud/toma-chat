@@ -86,7 +86,7 @@ if "current_session" not in st.session_state:
 with st.sidebar:
     st.header("⚙️ إعدادات TOMA")
     
-    # حقل آمن لإدخال المفتاح (فارغ تماماً وخالٍ من أي مفاتيح ثابتة)
+    # حقل آمن لإدخال المفتاح
     api_key_input = st.text_input("أدخل مفتاح Google API Key:", type="password", help="احصل على مفتاحك المجاني من Google AI Studio")
 
     st.divider()
@@ -116,9 +116,10 @@ with st.sidebar:
 
     st.divider()
     
+    # تم تصحيح النماذج هنا لتجنب خطأ 404
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.5-flash", "gemini-2.5-pro"],
+        ["gemini-1.5-flash", "gemini-1.5-pro"],
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -201,7 +202,7 @@ if api_key_input:
                 words_count = len(message["content"].split())
                 st.markdown(f'<div class="word-counter">عدد الكلمات: {words_count}</div>', unsafe_allow_html=True)
                 
-                # إضافة زر الاستماع الصوتي للردود (Text-to-Speech)
+                # إضافة زر الاستماع الصوتي للردود
                 if message["role"] == "assistant":
                     if st.button(f"🔊 استماع للرد #{idx}", key=f"tts_{idx}"):
                         try:
@@ -218,7 +219,7 @@ if api_key_input:
 
         uploaded_file = st.file_uploader("📷 رفع صورة لتحليلها (اختياري):", type=["jpg", "jpeg", "png"])
 
-        # استقبال رسالة المستخدم (إما عبر حقل الكتابة أو الأزرار السريعة)
+        # استقبال رسالة المستخدم
         chat_input_val = st.chat_input("اكتب رسالتك هنا...")
         prompt = quick_prompt_selected if quick_prompt_selected else chat_input_val
 
