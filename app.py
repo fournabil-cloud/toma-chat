@@ -98,7 +98,6 @@ with st.sidebar:
 
     st.divider()
 
-    # إدارة المحادثات المحفوظة
     st.subheader("💬 المحادثات المحفوظة")
     session_names = list(st.session_state.sessions.keys())
     selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session))
@@ -115,10 +114,10 @@ with st.sidebar:
 
     st.divider()
     
-    # --- تم تحديث أسماء النماذج ---
+    # قائمة النماذج المعتمدة رسمياً والمستقرة تماماً
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash"],
+        ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash"],
         help="اختر النموذج المناسب للتحادث."
     )
 
@@ -154,13 +153,13 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v4.6**")
+    st.markdown("🔹 **TOMA CHAT Pro v4.7**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
     "خبير برمجة وتقنية (محترف)": "أنت خبير برمجة وتقنية محترف، قدم أكواد نظيفة، مشروحة بدقة وبأفضل الممارسات.",
     "كاتب محتوى ومبدع": "أنت كاتُب محتوى ومبدع محترف، اكتب بصياغة جذابة، بليغة، ومؤثرة.",
-    "mستشار تسويق وأعمال": "أنت مستشار تسويق وأعمال، قدم استراتيجيات ذكية وحلول عملية لنمو المشاريع.",
+    "مستشار تسويق وأعمال": "أنت مستشار تسويق وأعمال، قدم استراتيجيات ذكية وحلول عملية لنمو المشاريع.",
     "مختصر ومباشر جداً": "كن مختصراً ومباشراً قدر الإمكان، دون حشو أو إطالة."
 }
 
@@ -185,13 +184,12 @@ with col_q4:
 # --- المنطق الأساسي للدردشة ---
 if api_key_input:
     try:
-        # --- تهيئة العميل باستخدام المكتبة الحديثة ---
+        # تهيئة العميل بالصيغة الهندسية الصحيحة لتجنب مسارات v1beta المعطوبة
         client = genai.Client(api_key=api_key_input)
         system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
 
         messages = st.session_state.sessions[st.session_state.current_session]
 
-        # عرض الرسائل السابقة
         for idx, message in enumerate(messages):
             with st.chat_message(message["role"]):
                 if "image" in message and message["image"] is not None:
@@ -203,7 +201,6 @@ if api_key_input:
                 words_count = len(message["content"].split())
                 st.markdown(f'<div class="word-counter">عدد الكلمات: {words_count}</div>', unsafe_allow_html=True)
                 
-                # إضافة زر الاستماع الصوتي للردود
                 if message["role"] == "assistant":
                     if st.button(f"🔊 استماع للرد #{idx}", key=f"tts_{idx}"):
                         try:
@@ -220,8 +217,7 @@ if api_key_input:
 
         uploaded_file = st.file_uploader("📷 رفع صورة لتحليلها (اختياري):", type=["jpg", "jpeg", "png"])
 
-        # استقبال رسالة المستخدم
-        chat_input_val = st.chat_input("اكتب رسالتك هنا...")
+        chat_input_val = st.chat_input("اكتب رسالتك أو اطلب توليد صورة...")
         prompt = quick_prompt_selected if quick_prompt_selected else chat_input_val
 
         if prompt:
@@ -235,14 +231,12 @@ if api_key_input:
                     st.image(img_to_send, caption="الصورة المرفقة", width=250)
                 st.markdown(prompt)
 
-            # التحقق إذا كان المستخدم يطلب توليد صورة
             is_image_request = any(word in prompt.lower() for word in ["ارسم", "صورة لـ", "توليد صورة", "generate image", "draw"])
 
             with st.chat_message("assistant"):
                 if is_image_request:
                     with st.spinner("جاري توليد الصورة بواسطة الذكاء الاصطناعي..."):
                         try:
-                            # استخدام نموذج Imagen لتوليد الصور عبر مكتبة google-genai
                             response_gen = client.models.generate_images(
                                 model='imagen-3.0-generate-002',
                                 prompt=prompt,
@@ -263,7 +257,6 @@ if api_key_input:
                             st.markdown(bot_response)
                             messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": generated_img})
                         except Exception as img_err:
-                            # في حال لم يكن مفتاح المستخدم يدعم الـ Imagen، نلجأ للرد النصي الذكي البديل
                             response = client.models.generate_content(
                                 model=model_choice,
                                 contents=[prompt],
@@ -273,7 +266,6 @@ if api_key_input:
                             st.markdown(bot_response)
                             messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": None})
                 else:
-                    # --- المنطق الأساسي للدردشة النصية وتحليل الصور ---
                     with st.spinner("TOMA يفكر..."):
                         contents = [prompt]
                         if img_to_send is not None:
