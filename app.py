@@ -66,7 +66,7 @@ with st.sidebar:
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
         ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
-        key="model_v_final_8"
+        key="model_v_stable_final"
     )
 
     persona_choice = st.selectbox(
@@ -94,7 +94,7 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("🔹 **TOMA CHAT Pro v8.0**")
+    st.markdown("🔹 **TOMA CHAT Pro v9.0**")
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -104,23 +104,11 @@ persona_prompts = {
     "مختصر ومباشر جداً": "كن مختصراً ومباشراً قدر الإمكان، دون حشو أو إطالة."
 }
 
-def generate_safe_response(client, preferred_model, contents, system_instruction):
-    models_to_try = [preferred_model, "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
-    for m in models_to_try:
-        try:
-            res = client.models.generate_content(
-                model=m,
-                contents=contents,
-                config={'system_instruction': system_instruction}
-            )
-            return res.text
-        except Exception:
-            continue
-    raise Exception("لم نتمكن من الاتصال بـ Gemini عبر النماذج المتاحة.")
-
 if api_key_input:
+    # إزالة أي مسافات زائدة من المفتاح تلقائياً
+    clean_api_key = api_key_input.strip()
     try:
-        client = genai.Client(api_key=api_key_input)
+        client = genai.Client(api_key=clean_api_key)
         system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
         messages = st.session_state.sessions[st.session_state.current_session]
 
@@ -131,9 +119,6 @@ if api_key_input:
                 if "generated_image" in message and message["generated_image"] is not None:
                     st.image(message["generated_image"], caption="الصورة المولدة", width=400)
                 st.markdown(message["content"])
-                
-                words_count = len(message["content"].split())
-                st.markdown(f'<div class="word-counter">عدد الكلمات: {words_count}</div>', unsafe_allow_html=True)
 
         uploaded_file = st.file_uploader("📷 رفع صورة لتحليلها (اختياري):", type=["jpg", "jpeg", "png"])
         prompt = st.chat_input("اكتب رسالتك...")
@@ -149,16 +134,24 @@ if api_key_input:
 
             with st.chat_message("assistant"):
                 with st.spinner("TOMA يفكر..."):
-                    contents = [prompt]
+                    contents = []
                     if img_to_send:
-                        contents.insert(0, img_to_send)
+                        contents.append(img_to_send)
+                    contents.append(prompt)
 
-                    bot_response = generate_safe_response(client, model_choice, contents, system_instruction)
+                    # استدعاء مباشر ومستقر للنموذج المختار
+                    response = client.models.generate_content(
+                        model=model_choice,
+                        contents=contents,
+                        config={'system_instruction': system_instruction}
+                    )
+                    
+                    bot_response = response.text
                     st.markdown(bot_response)
                     messages.append({"role": "assistant", "content": bot_response, "image": None, "generated_image": None})
             st.rerun()
 
     except Exception as e:
-        st.error(f"حدث خطأ في الاتصال أو المفتاح: {e}")
+        st.error(f"حدث خطأ في الاتصال: {e}")
 else:
     st.info("👋 أهلاً بك في تطبيق **TOMA CHAT Pro**! يرجى إدخال مفتاح Google API Key الخاص بك في الشريط الجانبي لبدء الدردشة.")
