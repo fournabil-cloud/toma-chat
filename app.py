@@ -42,8 +42,10 @@ if "theme" not in str_app.session_state:
     str_app.session_state.theme = "داكن (Dark)"
 
 is_dark = str_app.session_state.theme == "داكن (Dark)"
-bg_color = "#121212" if is_dark else "#F8F9FA"
-card_bg = "#1E1E1E" if is_dark else "#FFFFFF"
+
+# تثبيت ألوان مستقرة ومريحة للعين تمنع أي شاشة سوداء أو تداخل في العناصر
+bg_color = "#121212" if is_dark else "#FFFFFF"
+card_bg = "#1E1E1E" if is_dark else "#F8F9FA"
 text_color = "#FFFFFF" if is_dark else "#212529"
 sidebar_bg = "#181818" if is_dark else "#F1F3F5"
 sidebar_text = "#E0E0E0" if is_dark else "#333333"
@@ -51,12 +53,12 @@ input_bg = "#2D2D2D" if is_dark else "#FFFFFF"
 input_text = "#FFFFFF" if is_dark else "#000000"
 accent_color = "#10A37F"
 
-# --- أكواد CSS والتنسيقات الاحترافية للأيقونات والعناصر ---
+# --- أكواد CSS والتنسيقات الاحترافية المستقرة ---
 str_app.markdown(f"""
     <style>
         .stApp {{
-            background-color: {bg_color};
-            color: {text_color};
+            background-color: {bg_color} !important;
+            color: {text_color} !important;
             font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
         }}
         
@@ -66,12 +68,12 @@ str_app.markdown(f"""
         }}
 
         [data-testid="stSidebar"] {{
-            background-color: {sidebar_bg};
+            background-color: {sidebar_bg} !important;
             border-left: 1px solid #2A2A2A;
             z-index: 999999 !important;
         }}
         [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {{
-            color: #FFFFFF !important;
+            color: {text_color} !important;
             font-weight: 600;
         }}
         [data-testid="stSidebar"] label p, [data-testid="stSidebar"] .stMarkdown p {{
@@ -134,28 +136,28 @@ str_app.markdown(f"""
         }}
 
         [data-testid="stChatInput"] textarea {{
-            background-color: {input_bg};
-            color: {input_text};
+            background-color: {input_bg} !important;
+            color: {input_text} !important;
             border-radius: 14px;
             border: 1px solid #444444;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }}
 
         .stButton > button {{
-            background-color: {accent_color};
-            color: white;
+            background-color: {accent_color} !important;
+            color: white !important;
             font-weight: 600;
             border-radius: 8px;
             border: none;
             transition: all 0.2s ease;
         }}
         .stButton > button:hover {{
-            background-color: #0E8E6D;
+            background-color: #0E8E6D !important;
             border: none;
         }}
         .stDownloadButton > button {{
-            background-color: #2B6CB0;
-            color: white;
+            background-color: #2B6CB0 !important;
+            color: white !important;
             font-weight: 600;
             border-radius: 8px;
             border: none;
@@ -209,7 +211,7 @@ persona_prompts = {
     "مختصر ومباشر جداً": "كن مختصراً ومباشراً قدر الإمكان، دون حشو أو إطالة."
 }
 
-# --- القائمة الجانبية (Sidebar) مع أيقونات احترافية منسقة ---
+# --- القائمة الجانبية (Sidebar) ---
 with str_app.sidebar:
     if logo_b64:
         str_app.markdown(f'<img src="{logo_b64}" class="sidebar-logo" alt="Logo" />', unsafe_allow_html=True)
@@ -217,16 +219,16 @@ with str_app.sidebar:
     str_app.markdown("### <i class='fa-solid fa-sliders'></i> إعدادات المنصة", unsafe_allow_html=True)
     
     secret_key = str_app.secrets.get("GROQ_API_KEY", DEFAULT_API_KEY)
-    api_key_input = str_app.text_input("مفتاح Groq API Key:", value=secret_key, type="password", key="groq_api_key_v20")
+    api_key_input = str_app.text_input("مفتاح Groq API Key:", value=secret_key, type="password", key="groq_api_key_v21")
 
     str_app.divider()
-    enable_web_search = str_app.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v20")
-    deep_research_mode = str_app.checkbox("🔍 وضع البحث المتقدم والعميق", value=False, key="deep_research_toggle_v20")
-    enable_tts = str_app.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v20")
-    enable_code_preview = str_app.checkbox("💻 معاينة أكواد HTML/Web المباشرة", value=True, key="code_preview_toggle_v20")
+    enable_web_search = str_app.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v21")
+    deep_research_mode = str_app.checkbox("🔍 وضع البحث المتقدم والعميق", value=False, key="deep_research_toggle_v21")
+    enable_tts = str_app.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v21")
+    enable_code_preview = str_app.checkbox("💻 معاينة أكواد HTML/Web المباشرة", value=True, key="code_preview_toggle_v21")
 
     str_app.divider()
-    new_theme = str_app.selectbox("🎨 مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v20")
+    new_theme = str_app.selectbox("🎨 مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v21")
     if new_theme != str_app.session_state.theme:
         str_app.session_state.theme = new_theme
         str_app.rerun()
@@ -235,19 +237,19 @@ with str_app.sidebar:
     model_choice = str_app.selectbox(
         "🧠 اختر نموذج الذكاء الاصطناعي:",
         ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
-        key="groq_model_v20"
+        key="groq_model_v21"
     )
 
     persona_choice = str_app.selectbox(
         "🎭 اختر شخصية ونمط TOMA:",
         ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"],
-        key="persona_v20"
+        key="persona_v21"
     )
 
     str_app.divider()
     str_app.markdown("### <i class='fa-solid fa-comments'></i> المحادثات المحفوظة", unsafe_allow_html=True)
     session_names = list(str_app.session_state.sessions.keys())
-    selected_session = str_app.selectbox("اختر المحادثة:", session_names, index=session_names.index(str_app.session_state.current_session), key="session_selector_v20")
+    selected_session = str_app.selectbox("اختر المحادثة:", session_names, index=session_names.index(str_app.session_state.current_session), key="session_selector_v21")
     
     if selected_session != str_app.session_state.current_session:
         str_app.session_state.current_session = selected_session
@@ -255,13 +257,13 @@ with str_app.sidebar:
 
     col_btn1, col_btn2 = str_app.columns(2)
     with col_btn1:
-        if str_app.button("➕ جديدة", key="new_chat_btn_v20"):
+        if str_app.button("➕ جديدة", key="new_chat_btn_v21"):
             new_name = f"محادثة جديدة {len(str_app.session_state.sessions) + 1}"
             str_app.session_state.sessions[new_name] = []
             str_app.session_state.current_session = new_name
             str_app.rerun()
     with col_btn2:
-        if str_app.button("🗑️ مسح", key="clear_chat_btn_v20"):
+        if str_app.button("🗑️ مسح", key="clear_chat_btn_v21"):
             str_app.session_state.sessions[str_app.session_state.current_session] = []
             str_app.rerun()
 
@@ -278,7 +280,7 @@ with str_app.sidebar:
             data=chat_text_export,
             file_name=f"{str_app.session_state.current_session}.txt",
             mime="text/plain",
-            key="export_chat_btn_v20"
+            key="export_chat_btn_v21"
         )
 
 def encode_image(uploaded_file):
@@ -303,7 +305,6 @@ def web_search(query, max_results=3):
     except Exception:
         return ""
 
-# --- دالة الترجمة الدقيقة والمحصنة ضد الخلط ---
 def translate_prompt_to_english(client, arabic_prompt):
     direct_translations = {
         "مقام الشهيد": "Maqam Echahid monument Algiers, three concrete palm-frond shaped massive arches, clear sky, highly detailed architectural photography",
@@ -359,23 +360,23 @@ if api_key_input:
                 uploaded_file = str_app.file_uploader(
                     "إرفاق صورة، مستند (PDF/TXT) أو مقطع صوتي (MP3/WAV):",
                     type=["jpg", "jpeg", "png", "pdf", "txt", "mp3", "wav", "m4a"],
-                    key="doc_uploader_v20"
+                    key="doc_uploader_v21"
                 )
             
             with tab_image_gen:
                 col_img1, col_img2 = str_app.columns([2, 1])
                 with col_img1:
-                    gen_image_prompt = str_app.text_input("وصف الصورة المراد رسمها (اكتب بالعربية براحتك):", key="gen_image_prompt_v20")
+                    gen_image_prompt = str_app.text_input("وصف الصورة المراد رسمها (اكتب بالعربية براحتك):", key="gen_image_prompt_v21")
                 with col_img2:
-                    img_style = str_app.selectbox("النمط الفني:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v20")
+                    img_style = str_app.selectbox("النمط الفني:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v21")
                 
                 col_dim1, col_dim2 = str_app.columns([2, 1])
                 with col_dim1:
-                    img_aspect = str_app.selectbox("أبعاد الصورة:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v20")
+                    img_aspect = str_app.selectbox("أبعاد الصورة:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v21")
                 with col_dim2:
                     str_app.write("")
                     str_app.write("")
-                    generate_btn = str_app.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v20")
+                    generate_btn = str_app.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v21")
 
         if 'generate_btn' in locals() and generate_btn and gen_image_prompt:
             w, h = 512, 512
@@ -504,7 +505,7 @@ if api_key_input:
 else:
     str_app.markdown(f"""
     <div style="background-color: {card_bg}; color: {text_color}; padding: 35px; border-radius: 16px; text-align: center; margin-top: 50px; border: 1px solid #333333;">
-        <h2 style="color: #FFFFFF !important; margin-bottom: 10px;">👋 أهلاً بك في TOMA CHAT Pro</h2>
-        <p style="font-size: 16px; color: #BBBBBB !important;">يرجى إدخال <b>مفتاح Groq API Key</b> لبدء استخدام المنصة.</p>
+        <h2 style="color: {text_color} !important; margin-bottom: 10px;">👋 أهلاً بك في TOMA CHAT Pro</h2>
+        <p style="font-size: 16px; color: #888888 !important;">يرجى إدخال <b>مفتاح Groq API Key</b> لبدء استخدام المنصة.</p>
     </div>
     """, unsafe_allow_html=True)
