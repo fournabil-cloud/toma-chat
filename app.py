@@ -5,6 +5,7 @@ import urllib.parse
 import requests
 from io import BytesIO
 import base64
+from pypdf import PdfReader
 
 st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="centered")
 
@@ -39,12 +40,10 @@ if "current_session" not in st.session_state:
 
 with st.sidebar:
     st.header("⚙️ إعدادات TOMA")
-    # تم إضافة key="groq_api_key_v1" لمنع التكرار
-    api_key_input = st.text_input("أدخل مفتاح Groq API Key:", type="password", key="groq_api_key_v1")
+    api_key_input = st.text_input("أدخل مفتاح Groq API Key:", type="password", key="groq_api_key_v2")
 
     st.divider()
-    # تم إضافة key="theme_selector_v1" لمنع التكرار
-    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if st.session_state.theme == "داكن (Dark)" else 1, key="theme_selector_v1")
+    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if st.session_state.theme == "داكن (Dark)" else 1, key="theme_selector_v2")
     if new_theme != st.session_state.theme:
         st.session_state.theme = new_theme
         st.rerun()
@@ -52,38 +51,33 @@ with st.sidebar:
     st.divider()
     st.subheader("💬 المحادثات المحفوظة")
     session_names = list(st.session_state.sessions.keys())
-    # تم إضافة key="session_selector_v1" لمنع التكرار
-    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v1")
+    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v2")
     
     if selected_session != st.session_state.current_session:
         st.session_state.current_session = selected_session
         st.rerun()
 
-    # تم إضافة key="new_chat_btn_v1" لمنع التكرار
-    if st.button("➕ محادثة جديدة", key="new_chat_btn_v1"):
+    if st.button("➕ محادثة جديدة", key="new_chat_btn_v2"):
         new_name = f"محادثة جديدة {len(st.session_state.sessions) + 1}"
         st.session_state.sessions[new_name] = []
         st.session_state.current_session = new_name
         st.rerun()
 
     st.divider()
-    # تم إضافة key="groq_model_v1" لمنع التكرار
     model_choice = st.selectbox(
-        "اختر نموذج النص والتحليل:",
+        "اختر نموذج الذكاء الاصطناعي:",
         ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
-        key="groq_model_v1"
+        key="groq_model_v2"
     )
 
-    # تم إضافة key="persona_v1" لمنع التكرار
     persona_choice = st.selectbox(
         "اختر شخصية ونمط TOMA:",
         ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"],
-        key="persona_v1"
+        key="persona_v2"
     )
 
     st.divider()
-    # تم إضافة key="clear_chat_btn_v1" لمنع التكرار
-    if st.button("🗑️ مسح المحادثة الحالية", key="clear_chat_btn_v1"):
+    if st.button("🗑️ مسح المحادثة الحالية", key="clear_chat_btn_v2"):
         st.session_state.sessions[st.session_state.current_session] = []
         st.rerun()
 
@@ -98,6 +92,15 @@ persona_prompts = {
 def encode_image(uploaded_file):
     return base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
 
+def extract_text_from_pdf(pdf_file):
+    reader = PdfReader(pdf_file)
+    text = ""
+    for page in reader.pages:
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted + "\n"
+    return text
+
 def fetch_generated_image(prompt):
     encoded_prompt = urllib.parse.quote(prompt)
     url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=512&height=512&nologo=true"
@@ -105,8 +108,8 @@ def fetch_generated_image(prompt):
     try:
         response = requests.get(url, headers=headers, timeout=15)
         if response.status_code == 200:
-            return Image.open(BytesIO(response.content))
-    except Exception as e:
+            return response.content
+    except Exception:
         return None
     return None
 
@@ -121,22 +124,27 @@ if api_key_input:
             with st.chat_message(message["role"]):
                 if message.get("image"):
                     st.image(message["image"], caption="الصورة المرفقة", width=250)
-                if message.get("generated_image"):
-                    st.image(message["generated_image"], caption="الصورة المولدة", width=400)
+                if message.get("generated_image_bytes"):
+                    st.image(message["generated_image_bytes"], caption="الصورة المولدة", width=400)
+                    st.download_button(
+                        label="📥 تنزيل الصورة",
+                        data=message["generated_image_bytes"],
+                        file_name="toma_generated_image.png",
+                        mime="image/png",
+                        key=f"dl_{hash(message['content'])}"
+                    )
                 if message.get("content"):
                     st.markdown(message["content"])
 
-        st.subheader("🎨 أدوات الصور:")
+        st.subheader("📁 المرفقات وأدوات الصور:")
         col1, col2 = st.columns(2)
         with col1:
-            # تم إضافة key="vision_uploader_v1" لمنع التكرار
-            uploaded_file = st.file_uploader("📷 رفع صورة لتحليلها (Vision):", type=["jpg", "jpeg", "png"], key="vision_uploader_v1")
+            uploaded_file = st.file_uploader("📷/📄 رفع صورة أو مستند (PDF/TXT):", type=["jpg", "jpeg", "png", "pdf", "txt"], key="doc_uploader_v2")
         with col2:
-            # تم إضافة key="gen_image_prompt_v1" لمنع التكرار
-            gen_image_prompt = st.text_input("🖌️ توليد صورة جديدة (اكتب الوصف هنا):", key="gen_image_prompt_v1")
-            # تم إضافة key="gen_image_btn_v1" لمنع التكرار
-            generate_btn = st.button("🎨 ارسم الصورة", key="gen_image_btn_v1")
+            gen_image_prompt = st.text_input("🖌️ توليد صورة جديدة (اكتب الوصف):", key="gen_image_prompt_v2")
+            generate_btn = st.button("🎨 ارسم الصورة", key="gen_image_btn_v2")
 
+        # معالجة رسم الصورة
         if generate_btn and gen_image_prompt:
             with st.chat_message("user"):
                 st.markdown(f"**طلب توليد صورة:** {gen_image_prompt}")
@@ -144,11 +152,21 @@ if api_key_input:
 
             with st.chat_message("assistant"):
                 with st.spinner("جاري جلب ورسم الصورة..."):
-                    img_data = fetch_generated_image(gen_image_prompt)
-                    if img_data:
-                        st.image(img_data, caption=f"رسمة: {gen_image_prompt}", width=400)
+                    img_bytes = fetch_generated_image(gen_image_prompt)
+                    if img_bytes:
+                        st.image(img_bytes, caption=f"رسمة: {gen_image_prompt}", width=400)
+                        st.download_button(
+                            label="📥 تنزيل الصورة",
+                            data=img_bytes,
+                            file_name="toma_image.png",
+                            mime="image/png"
+                        )
                         st.markdown("✨ تم توليد الصورة بنجاح!")
-                        messages.append({"role": "assistant", "content": "✨ تم توليد الصورة بنجاح!", "generated_image": img_data})
+                        messages.append({
+                            "role": "assistant",
+                            "content": "✨ تم توليد الصورة بنجاح!",
+                            "generated_image_bytes": img_bytes
+                        })
                     else:
                         st.error("تعذر تحميل الصورة حالياً، يرجى إعادة المحاولة.")
             st.rerun()
@@ -156,18 +174,26 @@ if api_key_input:
         prompt = st.chat_input("اكتب رسالتك...")
 
         if prompt:
-            img_upload = uploaded_file if uploaded_file else None
-            messages.append({"role": "user", "content": prompt, "image": img_upload})
+            file_type = uploaded_file.name.split(".")[-1].lower() if uploaded_file else None
+            user_msg = {"role": "user", "content": prompt}
+
+            if file_type in ["jpg", "jpeg", "png"]:
+                user_msg["image"] = uploaded_file
+
+            messages.append(user_msg)
             
             with st.chat_message("user"):
-                if img_upload:
-                    st.image(img_upload, caption="الصورة المرفقة", width=250)
+                if file_type in ["jpg", "jpeg", "png"]:
+                    st.image(uploaded_file, caption="الصورة المرفقة", width=250)
+                elif file_type in ["pdf", "txt"]:
+                    st.info(f"📄 تم إرفاق المستند: {uploaded_file.name}")
                 st.markdown(prompt)
 
             with st.chat_message("assistant"):
                 with st.spinner("TOMA يفكر..."):
-                    if img_upload:
-                        base64_img = encode_image(img_upload)
+                    # 1. إذا كان الملف صورة
+                    if file_type in ["jpg", "jpeg", "png"]:
+                        base64_img = encode_image(uploaded_file)
                         vision_messages = [
                             {
                                 "role": "user",
@@ -184,6 +210,27 @@ if api_key_input:
                             model="llama-3.2-11b-vision-preview",
                             messages=vision_messages,
                         )
+                    
+                    # 2. إذا كان الملف PDF أو TXT
+                    elif file_type in ["pdf", "txt"]:
+                        if file_type == "pdf":
+                            doc_text = extract_text_from_pdf(uploaded_file)
+                        else:
+                            doc_text = uploaded_file.getvalue().decode("utf-8")
+
+                        augmented_prompt = f"المستند المرفق:\n\"\"\"\n{doc_text[:12000]}\n\"\"\"\n\nبناءً على المستند أعلاه، إجابة السؤال التالي:\n{prompt}"
+                        
+                        groq_messages = [
+                            {"role": "system", "content": system_instruction},
+                            {"role": "user", "content": augmented_prompt}
+                        ]
+                        completion = client.chat.completions.create(
+                            model=model_choice,
+                            messages=groq_messages,
+                            temperature=0.5,
+                        )
+
+                    # 3. محادثة نصية عادية
                     else:
                         groq_messages = [{"role": "system", "content": system_instruction}]
                         for m in messages:
@@ -204,4 +251,4 @@ if api_key_input:
     except Exception as e:
         st.error(f"حدث خطأ في الاتصال: {e}")
 else:
-    st.info("👋 أهلاً بك في تطبيق **TOMA CHAT Pro**! يرجى إدخال مفتاح Groq API Key الخاص بك في الشريط الجانبي لبدء الدردشة.")
+    st.info("👋 أهلاً بك في تطبيق **TOMA CHAT Pro**! أدخل مفتاح Groq API Key في الشريط الجانبي لبدء استخدام كافة الميزات المتقدمة.")
