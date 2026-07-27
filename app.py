@@ -1,5 +1,5 @@
 import streamlit as st
-from google import genai
+from groq import Groq
 from PIL import Image
 
 st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="centered")
@@ -34,8 +34,8 @@ if "current_session" not in st.session_state:
     st.session_state.current_session = "محادثة جديدة 1"
 
 with st.sidebar:
-    st.header("⚙️ إعدادات TOMA")
-    api_key_input = st.text_input("أدخل مفتاح Google API Key:", type="password")
+    st.header("⚙️ إعدادات TOMA (Groq Edition)")
+    api_key_input = st.text_input("أدخل مفتاح Groq API Key:", type="password")
 
     st.divider()
     new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if st.session_state.theme == "داكن (Dark)" else 1)
@@ -61,8 +61,8 @@ with st.sidebar:
     st.divider()
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
-        ["gemini-2.0-flash-lite", "gemini-2.0-flash"],
-        key="model_v2026_fixed_indent"
+        ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
+        key="groq_model_choice"
     )
 
     persona_choice = st.selectbox(
@@ -86,47 +86,41 @@ persona_prompts = {
 if api_key_input:
     clean_api_key = api_key_input.strip()
     try:
-        client = genai.Client(api_key=clean_api_key)
+        client = Groq(api_key=clean_api_key)
         system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
         messages = st.session_state.sessions[st.session_state.current_session]
 
         for idx, message in enumerate(messages):
             with st.chat_message(message["role"]):
-                if "image" in message and message["image"] is not None:
-                    st.image(message["image"], caption="الصورة المرفقة", width=250)
                 st.markdown(message["content"])
 
-        uploaded_file = st.file_uploader("📷 رفع صورة لتحليلها (اختياري):", type=["jpg", "jpeg", "png"])
         prompt = st.chat_input("اكتب رسالتك...")
 
         if prompt:
-            img_to_send = Image.open(uploaded_file) if uploaded_file else None
-            messages.append({"role": "user", "content": prompt, "image": img_to_send})
+            messages.append({"role": "user", "content": prompt})
             
             with st.chat_message("user"):
-                if img_to_send:
-                    st.image(img_to_send, caption="الصورة المرفقة", width=250)
                 st.markdown(prompt)
 
             with st.chat_message("assistant"):
-                with st.spinner("TOMA يفكر..."):
-                    contents = []
-                    if img_to_send:
-                        contents.append(img_to_send)
-                    contents.append(prompt)
+                with st.spinner("TOMA يفكر بسرعات خارقة..."):
+                    # تجهيز سياق المحادثة بالكامل لـ Groq
+                    groq_messages = [{"role": "system", "content": system_instruction}]
+                    for m in messages:
+                        groq_messages.append({"role": m["role"], "content": m["content"]})
 
-                    response = client.models.generate_content(
+                    completion = client.chat.completions.create(
                         model=model_choice,
-                        contents=contents,
-                        config={'system_instruction': system_instruction}
+                        messages=groq_messages,
+                        temperature=0.7,
                     )
                     
-                    bot_response = response.text
+                    bot_response = completion.choices[0].message.content
                     st.markdown(bot_response)
-                    messages.append({"role": "assistant", "content": bot_response, "image": None})
+                    messages.append({"role": "assistant", "content": bot_response})
             st.rerun()
 
     except Exception as e:
-        st.error(f"حدث خطأ في الاتصال: {e}")
+        st.error(f"حدث خطأ في الاتصال بـ Groq: {e}")
 else:
-    st.info("👋 أهلاً بك في تطبيق **TOMA CHAT Pro**! يرجى إدخال مفتاح Google API Key الخاص بك في الشريط الجانبي لبدء الدردشة.")
+    st.info("👋 أهلاً بك في **TOMA CHAT Pro (Groq Edition)**! أدخل مفتاح Groq API Key في الشريط الجانبي لبدء دردشة فائقة السرعة.")
