@@ -30,8 +30,11 @@ str_app.set_page_config(
     layout="wide"
 )
 
-# منع المتصفحات من ترجمة الواجهة وتخريب عناصر التصميم
-str_app.markdown('<meta name="google" content="notranslate">', unsafe_allow_html=True)
+# حقن مكتبة FontAwesome للأيقونات الاحترافية ومنع الترجمة التلقائية للمتصفح
+str_app.markdown("""
+    <meta name="google" content="notranslate">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+""", unsafe_allow_html=True)
 
 DEFAULT_API_KEY = "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"
 
@@ -48,7 +51,7 @@ input_bg = "#2D2D2D" if is_dark else "#FFFFFF"
 input_text = "#FFFFFF" if is_dark else "#000000"
 accent_color = "#10A37F"
 
-# --- أكواد CSS التجميلية ---
+# --- أكواد CSS والتنسيقات الاحترافية للأيقونات والعناصر ---
 str_app.markdown(f"""
     <style>
         .stApp {{
@@ -206,45 +209,45 @@ persona_prompts = {
     "مختصر ومباشر جداً": "كن مختصراً ومباشراً قدر الإمكان، دون حشو أو إطالة."
 }
 
-# --- القائمة الجانبية (Sidebar) ---
+# --- القائمة الجانبية (Sidebar) مع أيقونات احترافية منسقة ---
 with str_app.sidebar:
     if logo_b64:
         str_app.markdown(f'<img src="{logo_b64}" class="sidebar-logo" alt="Logo" />', unsafe_allow_html=True)
         
-    str_app.header("⚙️ إعدادات المنصة")
+    str_app.markdown("### <i class='fa-solid fa-sliders'></i> إعدادات المنصة", unsafe_allow_html=True)
     
     secret_key = str_app.secrets.get("GROQ_API_KEY", DEFAULT_API_KEY)
-    api_key_input = str_app.text_input("مفتاح Groq API Key:", value=secret_key, type="password", key="groq_api_key_v19")
+    api_key_input = str_app.text_input("مفتاح Groq API Key:", value=secret_key, type="password", key="groq_api_key_v20")
 
     str_app.divider()
-    enable_web_search = str_app.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v19")
-    deep_research_mode = str_app.checkbox("🔍 وضع البحث المتقدم والعميق", value=False, key="deep_research_toggle_v19")
-    enable_tts = str_app.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v19")
-    enable_code_preview = str_app.checkbox("💻 معاينة أكواد HTML/Web المباشرة", value=True, key="code_preview_toggle_v19")
+    enable_web_search = str_app.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v20")
+    deep_research_mode = str_app.checkbox("🔍 وضع البحث المتقدم والعميق", value=False, key="deep_research_toggle_v20")
+    enable_tts = str_app.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v20")
+    enable_code_preview = str_app.checkbox("💻 معاينة أكواد HTML/Web المباشرة", value=True, key="code_preview_toggle_v20")
 
     str_app.divider()
-    new_theme = str_app.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v19")
+    new_theme = str_app.selectbox("🎨 مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v20")
     if new_theme != str_app.session_state.theme:
         str_app.session_state.theme = new_theme
         str_app.rerun()
 
     str_app.divider()
     model_choice = str_app.selectbox(
-        "اختر نموذج الذكاء الاصطناعي:",
+        "🧠 اختر نموذج الذكاء الاصطناعي:",
         ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
-        key="groq_model_v19"
+        key="groq_model_v20"
     )
 
     persona_choice = str_app.selectbox(
-        "اختر شخصية ونمط TOMA:",
+        "🎭 اختر شخصية ونمط TOMA:",
         ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"],
-        key="persona_v19"
+        key="persona_v20"
     )
 
     str_app.divider()
-    str_app.subheader("💬 المحادثات المحفوظة")
+    str_app.markdown("### <i class='fa-solid fa-comments'></i> المحادثات المحفوظة", unsafe_allow_html=True)
     session_names = list(str_app.session_state.sessions.keys())
-    selected_session = str_app.selectbox("اختر المحادثة:", session_names, index=session_names.index(str_app.session_state.current_session), key="session_selector_v19")
+    selected_session = str_app.selectbox("اختر المحادثة:", session_names, index=session_names.index(str_app.session_state.current_session), key="session_selector_v20")
     
     if selected_session != str_app.session_state.current_session:
         str_app.session_state.current_session = selected_session
@@ -252,13 +255,13 @@ with str_app.sidebar:
 
     col_btn1, col_btn2 = str_app.columns(2)
     with col_btn1:
-        if str_app.button("➕ جديدة", key="new_chat_btn_v19"):
+        if str_app.button("➕ جديدة", key="new_chat_btn_v20"):
             new_name = f"محادثة جديدة {len(str_app.session_state.sessions) + 1}"
             str_app.session_state.sessions[new_name] = []
             str_app.session_state.current_session = new_name
             str_app.rerun()
     with col_btn2:
-        if str_app.button("🗑️ مسح", key="clear_chat_btn_v19"):
+        if str_app.button("🗑️ مسح", key="clear_chat_btn_v20"):
             str_app.session_state.sessions[str_app.session_state.current_session] = []
             str_app.rerun()
 
@@ -275,7 +278,7 @@ with str_app.sidebar:
             data=chat_text_export,
             file_name=f"{str_app.session_state.current_session}.txt",
             mime="text/plain",
-            key="export_chat_btn_v19"
+            key="export_chat_btn_v20"
         )
 
 def encode_image(uploaded_file):
@@ -300,15 +303,13 @@ def web_search(query, max_results=3):
     except Exception:
         return ""
 
-# --- دالة الترجمة المحدثة والمحصنة ضد الخلط ---
+# --- دالة الترجمة الدقيقة والمحصنة ضد الخلط ---
 def translate_prompt_to_english(client, arabic_prompt):
-    # قاموس دقيق وموسع للمعالم والمواضيع الشائعة
     direct_translations = {
         "مقام الشهيد": "Maqam Echahid monument Algiers, three concrete palm-frond shaped massive arches, clear sky, highly detailed architectural photography",
         "مقام الشهيد بالجزائر": "Maqam Echahid monument Algiers, three concrete palm-frond shaped massive arches, clear sky, highly detailed architectural photography",
         "جزائر": "Algiers city landscape, Mediterranean coast, white buildings, beautiful architecture",
         "مسجد": "Islamic mosque architecture, beautiful minaret and dome, detailed exterior",
-        "سيارة": "modern sports car, high quality, realistic",
     }
     
     cleaned_prompt = arabic_prompt.strip()
@@ -316,7 +317,6 @@ def translate_prompt_to_english(client, arabic_prompt):
         if key in cleaned_prompt:
             return val
 
-    # ترجمة ذكية دقيقة مع منع الهلوسة وإجبار النموذج على إعطاء وصف بصري بحت
     try:
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
@@ -331,7 +331,6 @@ def translate_prompt_to_english(client, arabic_prompt):
         return arabic_prompt
 
 def fetch_generated_image(prompt, width=512, height=512, style=""):
-    # إضافة محسنات دقة لمنع الخلط وجعل الصورة مركزة وواضحة
     quality_modifiers = "masterpiece, highly detailed, sharp focus, professional photography"
     full_prompt = f"{prompt}, {style}, {quality_modifiers}" if style else f"{prompt}, {quality_modifiers}"
     
@@ -353,30 +352,30 @@ if api_key_input:
         system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
         messages = str_app.session_state.sessions[str_app.session_state.current_session]
 
-        with str_app.expander("🛠️ أدوات التفاعل والمرفقات (اضغط للفتح/الإغلاق)", expanded=False):
-            tab_upload, tab_image_gen = str_app.tabs(["📁 رفع الملفات والصوتيات", "🎨 توليد ورسم الصور"])
+        with str_app.expander("🛠️ لوحة الأدوات والمرفقات الذكية", expanded=False):
+            tab_upload, tab_image_gen = str_app.tabs(["📁 رفع الملفات والمستندات والصوتيات", "🎨 توليد ورسم الصور الاحترافية"])
             
             with tab_upload:
                 uploaded_file = str_app.file_uploader(
                     "إرفاق صورة، مستند (PDF/TXT) أو مقطع صوتي (MP3/WAV):",
                     type=["jpg", "jpeg", "png", "pdf", "txt", "mp3", "wav", "m4a"],
-                    key="doc_uploader_v19"
+                    key="doc_uploader_v20"
                 )
             
             with tab_image_gen:
                 col_img1, col_img2 = str_app.columns([2, 1])
                 with col_img1:
-                    gen_image_prompt = str_app.text_input("وصف الصورة المراد رسمها (اكتب بالعربية براحتك):", key="gen_image_prompt_v19")
+                    gen_image_prompt = str_app.text_input("وصف الصورة المراد رسمها (اكتب بالعربية براحتك):", key="gen_image_prompt_v20")
                 with col_img2:
-                    img_style = str_app.selectbox("النمط:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v19")
+                    img_style = str_app.selectbox("النمط الفني:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v20")
                 
                 col_dim1, col_dim2 = str_app.columns([2, 1])
                 with col_dim1:
-                    img_aspect = str_app.selectbox("الأبعاد:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v19")
+                    img_aspect = str_app.selectbox("أبعاد الصورة:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v20")
                 with col_dim2:
                     str_app.write("")
                     str_app.write("")
-                    generate_btn = str_app.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v19")
+                    generate_btn = str_app.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v20")
 
         if 'generate_btn' in locals() and generate_btn and gen_image_prompt:
             w, h = 512, 512
