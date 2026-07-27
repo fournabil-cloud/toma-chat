@@ -30,7 +30,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# تعيين المفتاح المباشر تلقائياً
+# منع المتصفحات من ترجمة الواجهة وتخريب عناصر التصميم
+st.markdown('<meta name="google" content="notranslate">', unsafe_allow_html=True)
+
 DEFAULT_API_KEY = "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"
 
 if "theme" not in st.session_state:
@@ -196,6 +198,14 @@ if "sessions" not in st.session_state:
 if "current_session" not in st.session_state:
     st.session_state.current_session = "محادثة جديدة 1"
 
+persona_prompts = {
+    "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
+    "خبير برمجة وتقنية (محترف)": "أنت خبير برمجة وتقنية محترف، قدم أكواد نظيفة، مشروحة بدقة.",
+    "كاتب محتوى ومبدع": "أنت كاتب محتوى ومبدع محترف، اكتب بصياغة جذابة، بليغة، ومؤثرة.",
+    "مستشار تسويق وأعمال": "أنت مستشار تسويق وأعمال، قدم استراتيجيات ذكية وحلول عملية لنمو المشاريع.",
+    "مختصر ومباشر جداً": "كن مختصراً ومباشراً قدر الإمكان، دون حشو أو إطالة."
+}
+
 # --- القائمة الجانبية (Sidebar) ---
 with st.sidebar:
     if logo_b64:
@@ -203,27 +213,38 @@ with st.sidebar:
         
     st.header("⚙️ إعدادات المنصة")
     
-    if "GROQ_API_KEY" in st.secrets:
-        api_key_input = st.secrets["GROQ_API_KEY"]
-    else:
-        api_key_input = st.text_input("مفتاح Groq API Key:", value=DEFAULT_API_KEY, type="password", key="groq_api_key_v13")
+    secret_key = st.secrets.get("GROQ_API_KEY", DEFAULT_API_KEY)
+    api_key_input = st.text_input("مفتاح Groq API Key:", value=secret_key, type="password", key="groq_api_key_v15")
 
     st.divider()
-    enable_web_search = st.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v13")
-    deep_research_mode = st.checkbox("🔍 وضع البحث المتقدم والعميق", value=False, key="deep_research_toggle_v13")
-    enable_tts = st.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v13")
-    enable_code_preview = st.checkbox("💻 معاينة أكواد HTML/Web المباشرة", value=True, key="code_preview_toggle_v13")
+    enable_web_search = st.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v15")
+    deep_research_mode = st.checkbox("🔍 وضع البحث المتقدم والعميق", value=False, key="deep_research_toggle_v15")
+    enable_tts = st.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v15")
+    enable_code_preview = st.checkbox("💻 معاينة أكواد HTML/Web المباشرة", value=True, key="code_preview_toggle_v15")
 
     st.divider()
-    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v13")
+    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v15")
     if new_theme != st.session_state.theme:
         st.session_state.theme = new_theme
         st.rerun()
 
     st.divider()
+    model_choice = st.selectbox(
+        "اختر نموذج الذكاء الاصطناعي:",
+        ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
+        key="groq_model_v15"
+    )
+
+    persona_choice = st.selectbox(
+        "اختر شخصية ونمط TOMA:",
+        ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"],
+        key="persona_v15"
+    )
+
+    st.divider()
     st.subheader("💬 المحادثات المحفوظة")
     session_names = list(st.session_state.sessions.keys())
-    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v13")
+    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v15")
     
     if selected_session != st.session_state.current_session:
         st.session_state.current_session = selected_session
@@ -231,13 +252,13 @@ with st.sidebar:
 
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
-        if st.button("➕ جديدة", key="new_chat_btn_v13"):
+        if st.button("➕ جديدة", key="new_chat_btn_v15"):
             new_name = f"محادثة جديدة {len(st.session_state.sessions) + 1}"
             st.session_state.sessions[new_name] = []
             st.session_state.current_session = new_name
             st.rerun()
     with col_btn2:
-        if st.button("🗑️ مسح", key="clear_chat_btn_v13"):
+        if st.button("🗑️ مسح", key="clear_chat_btn_v15"):
             st.session_state.sessions[st.session_state.current_session] = []
             st.rerun()
 
@@ -254,29 +275,8 @@ with st.sidebar:
             data=chat_text_export,
             file_name=f"{st.session_state.current_session}.txt",
             mime="text/plain",
-            key="export_chat_btn_v13"
+            key="export_chat_btn_v15"
         )
-
-    st.divider()
-    model_choice = st.selectbox(
-        "اختر نموذج الذكاء الاصطناعي:",
-        ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
-        key="groq_model_v13"
-    )
-
-    persona_choice = st.selectbox(
-        "اختر شخصية ونمط TOMA:",
-        ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"],
-        key="persona_v13"
-    )
-
-persona_prompts = {
-    "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
-    "خبير برمجة وتقنية (محترف)": "أنت خبير برمجة وتقنية محترف، قدم أكواد نظيفة، مشروحة بدقة.",
-    "كاتب محتوى ومبدع": "أنت كاتب محتوى ومبدع محترف، اكتب بصياغة جذابة، بليغة، ومؤثرة.",
-    "مستشار تسويق وأعمال": "أنت مستشار تسويق وأعمال، قدم استراتيجيات ذكية وحلول عملية لنمو المشاريع.",
-    "مختصر ومباشر جداً": "كن مختصراً ومباشراً قدر الإمكان، دون حشو أو إطالة."
-}
 
 def encode_image(uploaded_file):
     return base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
@@ -303,7 +303,7 @@ def web_search(query, max_results=3):
 def fetch_generated_image(prompt, width=512, height=512, style=""):
     full_prompt = f"{prompt}, {style}" if style else prompt
     encoded_prompt = urllib.parse.quote(full_prompt)
-    url = f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){encoded_prompt}?width={width}&height={height}&nologo=true"
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&nologo=true"
     headers = {'User-Agent': 'Mozilla/5.0'}
     try:
         response = requests.get(url, headers=headers, timeout=15)
@@ -327,23 +327,23 @@ if api_key_input:
                 uploaded_file = st.file_uploader(
                     "إرفاق صورة، مستند (PDF/TXT) أو مقطع صوتي (MP3/WAV):",
                     type=["jpg", "jpeg", "png", "pdf", "txt", "mp3", "wav", "m4a"],
-                    key="doc_uploader_v13"
+                    key="doc_uploader_v15"
                 )
             
             with tab_image_gen:
                 col_img1, col_img2 = st.columns([2, 1])
                 with col_img1:
-                    gen_image_prompt = st.text_input("وصف الصورة المراد رسمها:", key="gen_image_prompt_v13")
+                    gen_image_prompt = st.text_input("وصف الصورة المراد رسمها:", key="gen_image_prompt_v15")
                 with col_img2:
-                    img_style = st.selectbox("النمط:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v13")
+                    img_style = st.selectbox("النمط:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v15")
                 
                 col_dim1, col_dim2 = st.columns([2, 1])
                 with col_dim1:
-                    img_aspect = st.selectbox("الأبعاد:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v13")
+                    img_aspect = st.selectbox("الأبعاد:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v15")
                 with col_dim2:
                     st.write("")
                     st.write("")
-                    generate_btn = st.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v13")
+                    generate_btn = st.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v15")
 
         if 'generate_btn' in locals() and generate_btn and gen_image_prompt:
             w, h = 512, 512
@@ -392,7 +392,6 @@ if api_key_input:
                 if message.get("content"):
                     st.markdown(message["content"])
                     
-                    # معاينة الأكواد المباشرة إذا احتوى الرد على HTML
                     if message["role"] == "assistant" and enable_code_preview:
                         html_code = extract_html_code(message["content"])
                         if html_code:
