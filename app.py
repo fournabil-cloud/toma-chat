@@ -307,4 +307,27 @@ with str_app.sidebar:
         str_app.download_button(
             label="📄 تصدير المحادثة (TXT)",
             data=chat_text_export,
-            file_name
+            file_name=f"{str_app.session_state.current_session}.txt",
+            mime="text/plain",
+            key="export_chat_btn_v22"
+        )
+
+def encode_image(uploaded_file):
+    return base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
+
+def extract_text_from_pdf(pdf_file):
+    reader = PdfReader(pdf_file)
+    text = ""
+    for page in reader.pages:
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted + "\n"
+    return text
+
+def web_search(query, max_results=3):
+    try:
+        results = list(DDGS().text(query, max_results=max_results))
+        context = "نتائج البحث المباشر في الويب:\n"
+        for idx, r in enumerate(results, 1):
+            context += f"{idx}. {r['title']}: {r['body']}\n"
+        return
