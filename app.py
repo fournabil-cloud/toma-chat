@@ -159,11 +159,9 @@ st.markdown(f"""
 # --- دالة لتحويل النص إلى صوت ---
 def text_to_speech(text):
     try:
-        # اكتشاف إذا ما كان النص يحتوي على حروف عربية
         has_arabic = any('\u0600' <= char <= '\u06FF' for char in text)
         lang = 'ar' if has_arabic else 'en'
-        
-        tts = gTTS(text=text[:500], lang=lang) # تحديد أول 500 حرف للاستجابة السريعة
+        tts = gTTS(text=text[:500], lang=lang)
         fp = BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
@@ -198,14 +196,15 @@ with st.sidebar:
     if "GROQ_API_KEY" in st.secrets:
         api_key_input = st.secrets["GROQ_API_KEY"]
     else:
-        api_key_input = st.text_input("مفتاح Groq API Key:", value=DEFAULT_API_KEY, type="password", key="groq_api_key_v11")
+        api_key_input = st.text_input("مفتاح Groq API Key:", value=DEFAULT_API_KEY, type="password", key="groq_api_key_v12")
 
     st.divider()
-    enable_web_search = st.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v11")
-    enable_tts = st.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v11")
+    enable_web_search = st.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v12")
+    deep_research_mode = st.checkbox("🔍 وضع البحث المتقدم والعميق", value=False, key="deep_research_toggle_v12")
+    enable_tts = st.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v12")
 
     st.divider()
-    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v11")
+    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v12")
     if new_theme != st.session_state.theme:
         st.session_state.theme = new_theme
         st.rerun()
@@ -213,7 +212,7 @@ with st.sidebar:
     st.divider()
     st.subheader("💬 المحادثات المحفوظة")
     session_names = list(st.session_state.sessions.keys())
-    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v11")
+    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v12")
     
     if selected_session != st.session_state.current_session:
         st.session_state.current_session = selected_session
@@ -221,13 +220,13 @@ with st.sidebar:
 
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
-        if st.button("➕ جديدة", key="new_chat_btn_v11"):
+        if st.button("➕ جديدة", key="new_chat_btn_v12"):
             new_name = f"محادثة جديدة {len(st.session_state.sessions) + 1}"
             st.session_state.sessions[new_name] = []
             st.session_state.current_session = new_name
             st.rerun()
     with col_btn2:
-        if st.button("🗑️ مسح", key="clear_chat_btn_v11"):
+        if st.button("🗑️ مسح", key="clear_chat_btn_v12"):
             st.session_state.sessions[st.session_state.current_session] = []
             st.rerun()
 
@@ -244,20 +243,20 @@ with st.sidebar:
             data=chat_text_export,
             file_name=f"{st.session_state.current_session}.txt",
             mime="text/plain",
-            key="export_chat_btn_v11"
+            key="export_chat_btn_v12"
         )
 
     st.divider()
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
         ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
-        key="groq_model_v11"
+        key="groq_model_v12"
     )
 
     persona_choice = st.selectbox(
         "اختر شخصية ونمط TOMA:",
         ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"],
-        key="persona_v11"
+        key="persona_v12"
     )
 
 persona_prompts = {
@@ -280,9 +279,9 @@ def extract_text_from_pdf(pdf_file):
             text += extracted + "\n"
     return text
 
-def web_search(query):
+def web_search(query, max_results=3):
     try:
-        results = list(DDGS().text(query, max_results=3))
+        results = list(DDGS().text(query, max_results=max_results))
         context = "نتائج البحث المباشر في الويب:\n"
         for idx, r in enumerate(results, 1):
             context += f"{idx}. {r['title']}: {r['body']}\n"
@@ -317,23 +316,23 @@ if api_key_input:
                 uploaded_file = st.file_uploader(
                     "إرفاق صورة، مستند (PDF/TXT) أو مقطع صوتي (MP3/WAV):",
                     type=["jpg", "jpeg", "png", "pdf", "txt", "mp3", "wav", "m4a"],
-                    key="doc_uploader_v11"
+                    key="doc_uploader_v12"
                 )
             
             with tab_image_gen:
                 col_img1, col_img2 = st.columns([2, 1])
                 with col_img1:
-                    gen_image_prompt = st.text_input("وصف الصورة المراد رسمها:", key="gen_image_prompt_v11")
+                    gen_image_prompt = st.text_input("وصف الصورة المراد رسمها:", key="gen_image_prompt_v12")
                 with col_img2:
-                    img_style = st.selectbox("النمط:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v11")
+                    img_style = st.selectbox("النمط:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v12")
                 
                 col_dim1, col_dim2 = st.columns([2, 1])
                 with col_dim1:
-                    img_aspect = st.selectbox("الأبعاد:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v11")
+                    img_aspect = st.selectbox("الأبعاد:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v12")
                 with col_dim2:
                     st.write("")
                     st.write("")
-                    generate_btn = st.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v11")
+                    generate_btn = st.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v12")
 
         if 'generate_btn' in locals() and generate_btn and gen_image_prompt:
             w, h = 512, 512
@@ -424,8 +423,9 @@ if api_key_input:
 
                         else:
                             web_context = ""
-                            if enable_web_search:
-                                web_context = web_search(prompt)
+                            if enable_web_search or deep_research_mode:
+                                num_res = 6 if deep_research_mode else 3
+                                web_context = web_search(prompt, max_results=num_res)
 
                             groq_messages = [{"role": "system", "content": system_instruction}]
                             for m in messages[-8:]:
@@ -433,7 +433,10 @@ if api_key_input:
                                     groq_messages.append({"role": m["role"], "content": m["content"]})
 
                             if web_context:
-                                groq_messages.append({"role": "system", "content": f"معلومات إضافية من الويب للرد:\n{web_context}"})
+                                if deep_research_mode:
+                                    groq_messages.append({"role": "system", "content": f"قم بإعداد تقرير مفصل وشامل بناءً على نتائج البحث التالية:\n{web_context}"})
+                                else:
+                                    groq_messages.append({"role": "system", "content": f"معلومات إضافية من الويب للرد:\n{web_context}"})
 
                             completion = client.chat.completions.create(model=model_choice, messages=groq_messages, temperature=0.7)
                         
