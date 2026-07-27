@@ -1,9 +1,7 @@
 import streamlit as st
 from groq import Groq
 from PIL import Image
-import requests
 import urllib.parse
-from io import BytesIO
 import base64
 
 st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="centered")
@@ -92,7 +90,8 @@ def encode_image(uploaded_file):
 
 def generate_image_url(prompt):
     encoded_prompt = urllib.parse.quote(prompt)
-    return f"https://pollinations.ai/p/{encoded_prompt}?width=1024&height=1024&seed=42&model=flux"
+    # رابط مباشر ومستقر ومجاني بدون حظر متصفحات
+    return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=800&height=800&nologo=true"
 
 if api_key_input:
     clean_api_key = api_key_input.strip()
@@ -106,7 +105,8 @@ if api_key_input:
                 if message.get("image"):
                     st.image(message["image"], caption="الصورة المرفقة", width=250)
                 if message.get("generated_image_url"):
-                    st.image(message["generated_image_url"], caption="الصورة المولدة", width=400)
+                    # عرض الصورة عبر Markdown لتفادي مشاكل التحميل في Streamlit
+                    st.markdown(f"![الصورة المولدة]({message['generated_image_url']})")
                 if message.get("content"):
                     st.markdown(message["content"])
 
@@ -127,12 +127,11 @@ if api_key_input:
             with st.chat_message("assistant"):
                 with st.spinner("جاري رسم الصورة الذكية..."):
                     img_url = generate_image_url(gen_image_prompt)
-                    st.image(img_url, caption=f"رسمة: {gen_image_prompt}", width=400)
+                    st.markdown(f"![{gen_image_prompt}]({img_url})")
                     st.markdown("✨ تم توليد الصورة بنجاح!")
                     messages.append({"role": "assistant", "content": "✨ تم توليد الصورة بنجاح!", "generated_image_url": img_url})
             st.rerun()
 
-        # معالجة إرسال النصوص أو الصور المرفقة
         prompt = st.chat_input("اكتب رسالتك...")
 
         if prompt:
@@ -147,7 +146,6 @@ if api_key_input:
             with st.chat_message("assistant"):
                 with st.spinner("TOMA يفكر..."):
                     if img_data:
-                        # التحليل باستخدام نموذج Vision
                         base64_img = encode_image(img_data)
                         vision_messages = [
                             {
@@ -166,7 +164,6 @@ if api_key_input:
                             messages=vision_messages,
                         )
                     else:
-                        # إجابة عامة باستخدام النمووج المختار
                         groq_messages = [{"role": "system", "content": system_instruction}]
                         for m in messages:
                             if m.get("content"):
