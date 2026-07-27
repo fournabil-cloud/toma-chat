@@ -1,6 +1,10 @@
 import streamlit as st
 from groq import Groq
 from PIL import Image
+import requests
+import urllib.parse
+from io import BytesIO
+import base64
 
 st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="centered")
 
@@ -34,7 +38,7 @@ if "current_session" not in st.session_state:
     st.session_state.current_session = "محادثة جديدة 1"
 
 with st.sidebar:
-    st.header("⚙️ إعدادات TOMA (Groq Edition)")
+    st.header("⚙️ إعدادات TOMA")
     api_key_input = st.text_input("أدخل مفتاح Groq API Key:", type="password")
 
     st.divider()
@@ -60,8 +64,8 @@ with st.sidebar:
 
     st.divider()
     model_choice = st.selectbox(
-        "اختر نموذج الذكاء الاصطناعي:",
-        ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
+        "اختر نموذج النص والتحليل:",
+        ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
         key="groq_model_choice"
     )
 
@@ -83,6 +87,13 @@ persona_prompts = {
     "مختصر ومباشر جداً": "كن مختصراً ومباشراً قدر الإمكان، دون حشو أو إطالة."
 }
 
+def encode_image(uploaded_file):
+    return base64.b64encode(uploaded_file.getvalue()).decode('utf-8')
+
+def generate_image_url(prompt):
+    encoded_prompt = urllib.parse.quote(prompt)
+    return f"https://pollinations.ai/p/{encoded_prompt}?width=1024&height=1024&seed=42&model=flux"
+
 if api_key_input:
     clean_api_key = api_key_input.strip()
     try:
@@ -90,30 +101,82 @@ if api_key_input:
         system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
         messages = st.session_state.sessions[st.session_state.current_session]
 
-        for idx, message in enumerate(messages):
+        for message in messages:
             with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+                if message.get("image"):
+                    st.image(message["image"], caption="الصورة المرفقة", width=250)
+                if message.get("generated_image_url"):
+                    st.image(message["generated_image_url"], caption="الصورة المولدة", width=400)
+                if message.get("content"):
+                    st.markdown(message["content"])
 
+        st.subheader("🎨 أدوات الصور:")
+        col1, col2 = st.columns(2)
+        with col1:
+            uploaded_file = st.file_uploader("📷 رفع صورة لتحليلها (Vision):", type=["jpg", "jpeg", "png"])
+        with col2:
+            gen_image_prompt = st.text_input("🖌️ توليد صورة جديدة (اكتب الوصف هنا):")
+            generate_btn = st.button("🎨 ارسم الصورة")
+
+        # معالجة أمر توليد الصور
+        if generate_btn and gen_image_prompt:
+            with st.chat_message("user"):
+                st.markdown(f"**طلب توليد صورة:** {gen_image_prompt}")
+            messages.append({"role": "user", "content": f"طلب توليد صورة: {gen_image_prompt}"})
+
+            with st.chat_message("assistant"):
+                with st.spinner("جاري رسم الصورة الذكية..."):
+                    img_url = generate_image_url(gen_image_prompt)
+                    st.image(img_url, caption=f"رسمة: {gen_image_prompt}", width=400)
+                    st.markdown("✨ تم توليد الصورة بنجاح!")
+                    messages.append({"role": "assistant", "content": "✨ تم توليد الصورة بنجاح!", "generated_image_url": img_url})
+            st.rerun()
+
+        # معالجة إرسال النصوص أو الصور المرفقة
         prompt = st.chat_input("اكتب رسالتك...")
 
         if prompt:
-            messages.append({"role": "user", "content": prompt})
+            img_data = uploaded_file if uploaded_file else None
+            messages.append({"role": "user", "content": prompt, "image": img_data})
             
             with st.chat_message("user"):
+                if img_data:
+                    st.image(img_data, caption="الصورة المرفقة", width=250)
                 st.markdown(prompt)
 
             with st.chat_message("assistant"):
-                with st.spinner("TOMA يفكر بسرعات خارقة..."):
-                    # تجهيز سياق المحادثة بالكامل لـ Groq
-                    groq_messages = [{"role": "system", "content": system_instruction}]
-                    for m in messages:
-                        groq_messages.append({"role": m["role"], "content": m["content"]})
+                with st.spinner("TOMA يفكر..."):
+                    if img_data:
+                        # التحليل باستخدام نموذج Vision
+                        base64_img = encode_image(img_data)
+                        vision_messages = [
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": prompt},
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}
+                                    }
+                                ]
+                            }
+                        ]
+                        completion = client.chat.completions.create(
+                            model="llama-3.2-11b-vision-preview",
+                            messages=vision_messages,
+                        )
+                    else:
+                        # إجابة عامة باستخدام النمووج المختار
+                        groq_messages = [{"role": "system", "content": system_instruction}]
+                        for m in messages:
+                            if m.get("content"):
+                                groq_messages.append({"role": m["role"], "content": m["content"]})
 
-                    completion = client.chat.completions.create(
-                        model=model_choice,
-                        messages=groq_messages,
-                        temperature=0.7,
-                    )
+                        completion = client.chat.completions.create(
+                            model=model_choice,
+                            messages=groq_messages,
+                            temperature=0.7,
+                        )
                     
                     bot_response = completion.choices[0].message.content
                     st.markdown(bot_response)
@@ -121,6 +184,6 @@ if api_key_input:
             st.rerun()
 
     except Exception as e:
-        st.error(f"حدث خطأ في الاتصال بـ Groq: {e}")
+        st.error(f"حدث خطأ: {e}")
 else:
-    st.info("👋 أهلاً بك في **TOMA CHAT Pro (Groq Edition)**! أدخل مفتاح Groq API Key في الشريط الجانبي لبدء دردشة فائقة السرعة.")
+    st.info("👋 أهلاً بك في **TOMA CHAT Pro**! أدخل مفتاح Groq API Key في الشريط الجانبي لتفعيل الشات ورسم وتحليل الصور.")
