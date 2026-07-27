@@ -8,8 +8,18 @@ import base64
 from pypdf import PdfReader
 from duckduckgo_search import DDGS
 
+# ==========================================
+# 🖼️ إعداد الشعار (ضع رابط شعارك هنا)
+# ==========================================
+# يمكنك استبدال هذا الرابط برابط شعارك الخاص أو اسم ملف محلي مثل "logo.png"
+LOGO_URL = "https://image.pollinations.ai/prompt/minimal%20modern%20electric%20lightning%20bolt%20logo%20TOMA%20CHAT%20Pro?width=200&height=200&nologo=true"
+
 # -- إعداد الصفحة --
-st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="wide")
+st.set_page_config(
+    page_title="TOMA CHAT Pro", 
+    page_icon=LOGO_URL if LOGO_URL else "⚡", 
+    layout="wide"
+)
 
 if "theme" not in st.session_state:
     st.session_state.theme = "داكن (Dark)"
@@ -27,20 +37,17 @@ accent_color = "#10A37F"
 # --- أكواد CSS الهيكلية للواجهة الاحترافية ---
 st.markdown(f"""
     <style>
-        /* إعدادات الخلفية والخطوط General Styling */
         .stApp {{
             background-color: {bg_color};
             color: {text_color};
             font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
         }}
         
-        /* المساحة السفليّة لمنع التغطية */
         .main .block-container {{
             padding-bottom: 140px !important;
             max-width: 1100px !important;
         }}
 
-        /* القائمة الجانبية Sidebar */
         [data-testid="stSidebar"] {{
             background-color: {sidebar_bg};
             border-left: 1px solid #2A2A2A;
@@ -54,20 +61,31 @@ st.markdown(f"""
             color: {sidebar_text} !important;
         }}
 
-        /* إخفاء الهيدر والفوتر الخارجي */
         #MainMenu, header, footer {{ visibility: hidden; }}
         
-        /* بطاقة الأدوات الملتصقة زجاجية Styling tools container */
-        .tools-card {{
-            background-color: {card_bg};
-            border: 1px solid #333333;
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        /* تنسيق الشعار والعنوان */
+        .header-container {{
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }}
+        .header-logo {{
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+        }}
+        .sidebar-logo {{
+            display: block;
+            margin: 0 auto 15px auto;
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }}
 
-        /* التبويبات Tabs */
         .stTabs [data-baseweb="tab-list"] {{
             gap: 10px;
         }}
@@ -84,7 +102,6 @@ st.markdown(f"""
             color: #FFFFFF !important;
         }}
 
-        /* شريط المحادثة الثابت في الأسفل Floating Chat Input */
         [data-testid="stChatInput"] {{
             position: fixed;
             bottom: 25px;
@@ -109,7 +126,6 @@ st.markdown(f"""
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }}
 
-        /* أزرار الإجراءات */
         .stButton > button {{
             background-color: {accent_color};
             color: white;
@@ -132,7 +148,13 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("⚡ TOMA CHAT Pro")
+# --- عرض الشعار والعنوان المزدوج ---
+st.markdown(f"""
+    <div class="header-container">
+        <img src="{LOGO_URL}" class="header-logo" alt="TOMA Logo" />
+        <h1 style="margin: 0; padding: 0; font-size: 2.2rem;">TOMA CHAT Pro</h1>
+    </div>
+""", unsafe_allow_html=True)
 
 # --- إدارة الجلسات ---
 if "sessions" not in st.session_state:
@@ -142,14 +164,17 @@ if "current_session" not in st.session_state:
 
 # --- القائمة الجانبية (Sidebar) ---
 with st.sidebar:
+    # الشعار في أعلى القائمة الجانبية
+    st.markdown(f'<img src="{LOGO_URL}" class="sidebar-logo" alt="TOMA Logo" />', unsafe_allow_html=True)
+    
     st.header("⚙️ إعدادات المنصة")
-    api_key_input = st.text_input("أدخل مفتاح Groq API Key:", type="password", key="groq_api_key_v7")
+    api_key_input = st.text_input("أدخل مفتاح Groq API Key:", type="password", key="groq_api_key_v8")
 
     st.divider()
-    enable_web_search = st.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v7")
+    enable_web_search = st.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v8")
 
     st.divider()
-    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v7")
+    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v8")
     if new_theme != st.session_state.theme:
         st.session_state.theme = new_theme
         st.rerun()
@@ -157,7 +182,7 @@ with st.sidebar:
     st.divider()
     st.subheader("💬 المحادثات المحفوظة")
     session_names = list(st.session_state.sessions.keys())
-    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v7")
+    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v8")
     
     if selected_session != st.session_state.current_session:
         st.session_state.current_session = selected_session
@@ -165,13 +190,13 @@ with st.sidebar:
 
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
-        if st.button("➕ جديدة", key="new_chat_btn_v7"):
+        if st.button("➕ جديدة", key="new_chat_btn_v8"):
             new_name = f"محادثة جديدة {len(st.session_state.sessions) + 1}"
             st.session_state.sessions[new_name] = []
             st.session_state.current_session = new_name
             st.rerun()
     with col_btn2:
-        if st.button("🗑️ مسح", key="clear_chat_btn_v7"):
+        if st.button("🗑️ مسح", key="clear_chat_btn_v8"):
             st.session_state.sessions[st.session_state.current_session] = []
             st.rerun()
 
@@ -188,20 +213,20 @@ with st.sidebar:
             data=chat_text_export,
             file_name=f"{st.session_state.current_session}.txt",
             mime="text/plain",
-            key="export_chat_btn_v7"
+            key="export_chat_btn_v8"
         )
 
     st.divider()
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
         ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
-        key="groq_model_v7"
+        key="groq_model_v8"
     )
 
     persona_choice = st.selectbox(
         "اختر شخصية ونمط TOMA:",
         ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"],
-        key="persona_v7"
+        key="persona_v8"
     )
 
 persona_prompts = {
@@ -254,7 +279,6 @@ if api_key_input:
         system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
         messages = st.session_state.sessions[st.session_state.current_session]
 
-        # --- تنظيم الأدوات والمرفقات في قائمة قابلة للطي وتبويبات مريحة ---
         with st.expander("🛠️ أدوات التفاعل والمرفقات (اضغط للفتح/الإغلاق)", expanded=False):
             tab_upload, tab_image_gen = st.tabs(["📁 رفع الملفات والصوتيات", "🎨 توليد ورسم الصور"])
             
@@ -262,25 +286,24 @@ if api_key_input:
                 uploaded_file = st.file_uploader(
                     "إرفاق صورة، مستند (PDF/TXT) أو مقطع صوتي (MP3/WAV):",
                     type=["jpg", "jpeg", "png", "pdf", "txt", "mp3", "wav", "m4a"],
-                    key="doc_uploader_v7"
+                    key="doc_uploader_v8"
                 )
             
             with tab_image_gen:
                 col_img1, col_img2 = st.columns([2, 1])
                 with col_img1:
-                    gen_image_prompt = st.text_input("وصف الصورة المراد رسمها:", key="gen_image_prompt_v7")
+                    gen_image_prompt = st.text_input("وصف الصورة المراد رسمها:", key="gen_image_prompt_v8")
                 with col_img2:
-                    img_style = st.selectbox("النمط:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v7")
+                    img_style = st.selectbox("النمط:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v8")
                 
                 col_dim1, col_dim2 = st.columns([2, 1])
                 with col_dim1:
-                    img_aspect = st.selectbox("الأبعاد:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v7")
+                    img_aspect = st.selectbox("الأبعاد:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v8")
                 with col_dim2:
                     st.write("")
                     st.write("")
-                    generate_btn = st.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v7")
+                    generate_btn = st.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v8")
 
-        # معالجة توليد الصور
         if 'generate_btn' in locals() and generate_btn and gen_image_prompt:
             w, h = 512, 512
             if "أفقي" in img_aspect: w, h = 768, 512
@@ -312,7 +335,6 @@ if api_key_input:
                         st.error("تعذر تحميل الصورة حالياً، يرجى إعادة المحاولة.")
             st.rerun()
 
-        # عرض سجل المحادثة
         for idx, message in enumerate(messages):
             with st.chat_message(message["role"]):
                 if message.get("image"):
@@ -329,7 +351,6 @@ if api_key_input:
                 if message.get("content"):
                     st.markdown(message["content"])
 
-        # إدخال الرسالة النصية
         prompt = st.chat_input("اكتب رسالتك هنا...")
 
         if prompt:
@@ -393,6 +414,7 @@ if api_key_input:
 else:
     st.markdown(f"""
     <div style="background-color: {card_bg}; color: {text_color}; padding: 35px; border-radius: 16px; text-align: center; margin-top: 50px; border: 1px solid #333333;">
+        <img src="{LOGO_URL}" style="width: 80px; height: 80px; border-radius: 16px; margin-bottom: 15px;" />
         <h2 style="color: #FFFFFF !important; margin-bottom: 10px;">👋 أهلاً بك في TOMA CHAT Pro</h2>
         <p style="font-size: 16px; color: #BBBBBB !important;">يرجى أدخال <b>مفتاح Groq API Key</b> في الشريط الجانبي لبدء استخدام المنصة.</p>
     </div>
