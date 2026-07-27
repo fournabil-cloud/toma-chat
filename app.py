@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as str_app
 import streamlit.components.v1 as components
 from groq import Groq
 from PIL import Image
@@ -24,21 +24,21 @@ LOGO_FILE = "logo.png"
 logo_b64 = get_image_base64(LOGO_FILE)
 
 # -- إعداد الصفحة --
-st.set_page_config(
+str_app.set_page_config(
     page_title="TOMA CHAT Pro", 
     page_icon=LOGO_FILE if os.path.exists(LOGO_FILE) else "⚡", 
     layout="wide"
 )
 
 # منع المتصفحات من ترجمة الواجهة وتخريب عناصر التصميم
-st.markdown('<meta name="google" content="notranslate">', unsafe_allow_html=True)
+str_app.markdown('<meta name="google" content="notranslate">', unsafe_allow_html=True)
 
 DEFAULT_API_KEY = "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"
 
-if "theme" not in st.session_state:
-    st.session_state.theme = "داكن (Dark)"
+if "theme" not in str_app.session_state:
+    str_app.session_state.theme = "داكن (Dark)"
 
-is_dark = st.session_state.theme == "داكن (Dark)"
+is_dark = str_app.session_state.theme == "داكن (Dark)"
 bg_color = "#121212" if is_dark else "#F8F9FA"
 card_bg = "#1E1E1E" if is_dark else "#FFFFFF"
 text_color = "#FFFFFF" if is_dark else "#212529"
@@ -49,7 +49,7 @@ input_text = "#FFFFFF" if is_dark else "#000000"
 accent_color = "#10A37F"
 
 # --- أكواد CSS التجميلية ---
-st.markdown(f"""
+str_app.markdown(f"""
     <style>
         .stApp {{
             background-color: {bg_color};
@@ -183,20 +183,20 @@ def extract_html_code(text):
 
 # --- عرض العنوان والشعار الرئيسي ---
 if logo_b64:
-    st.markdown(f"""
+    str_app.markdown(f"""
         <div class="header-container">
             <img src="{logo_b64}" class="header-logo" alt="Logo" />
             <h1 style="margin: 0; padding: 0; font-size: 2.2rem; display: inline-block;">TOMA CHAT Pro</h1>
         </div>
     """, unsafe_allow_html=True)
 else:
-    st.title("⚡ TOMA CHAT Pro")
+    str_app.title("⚡ TOMA CHAT Pro")
 
 # --- إدارة الجلسات ---
-if "sessions" not in st.session_state:
-    st.session_state.sessions = {"محادثة جديدة 1": []}
-if "current_session" not in st.session_state:
-    st.session_state.current_session = "محادثة جديدة 1"
+if "sessions" not in str_app.session_state:
+    str_app.session_state.sessions = {"محادثة جديدة 1": []}
+if "current_session" not in str_app.session_state:
+    str_app.session_state.current_session = "محادثة جديدة 1"
 
 persona_prompts = {
     "مساعد عام ذكي وودود": "أنت مساعد ذكي ودود ومفيد جداً، أجب بلغة واضحة ودقيقة.",
@@ -207,62 +207,62 @@ persona_prompts = {
 }
 
 # --- القائمة الجانبية (Sidebar) ---
-with st.sidebar:
+with str_app.sidebar:
     if logo_b64:
-        st.markdown(f'<img src="{logo_b64}" class="sidebar-logo" alt="Logo" />', unsafe_allow_html=True)
+        str_app.markdown(f'<img src="{logo_b64}" class="sidebar-logo" alt="Logo" />', unsafe_allow_html=True)
         
-    st.header("⚙️ إعدادات المنصة")
+    str_app.header("⚙️ إعدادات المنصة")
     
-    secret_key = st.secrets.get("GROQ_API_KEY", DEFAULT_API_KEY)
-    api_key_input = st.text_input("مفتاح Groq API Key:", value=secret_key, type="password", key="groq_api_key_v18")
+    secret_key = str_app.secrets.get("GROQ_API_KEY", DEFAULT_API_KEY)
+    api_key_input = str_app.text_input("مفتاح Groq API Key:", value=secret_key, type="password", key="groq_api_key_v19")
 
-    st.divider()
-    enable_web_search = st.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v18")
-    deep_research_mode = st.checkbox("🔍 وضع البحث المتقدم والعميق", value=False, key="deep_research_toggle_v18")
-    enable_tts = st.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v18")
-    enable_code_preview = st.checkbox("💻 معاينة أكواد HTML/Web المباشرة", value=True, key="code_preview_toggle_v18")
+    str_app.divider()
+    enable_web_search = str_app.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle_v19")
+    deep_research_mode = str_app.checkbox("🔍 وضع البحث المتقدم والعميق", value=False, key="deep_research_toggle_v19")
+    enable_tts = str_app.checkbox("🔊 تفعيل القراءة الصوتية تلقائياً", value=False, key="tts_toggle_v19")
+    enable_code_preview = str_app.checkbox("💻 معاينة أكواد HTML/Web المباشرة", value=True, key="code_preview_toggle_v19")
 
-    st.divider()
-    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v18")
-    if new_theme != st.session_state.theme:
-        st.session_state.theme = new_theme
-        st.rerun()
+    str_app.divider()
+    new_theme = str_app.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v19")
+    if new_theme != str_app.session_state.theme:
+        str_app.session_state.theme = new_theme
+        str_app.rerun()
 
-    st.divider()
-    model_choice = st.selectbox(
+    str_app.divider()
+    model_choice = str_app.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
         ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
-        key="groq_model_v18"
+        key="groq_model_v19"
     )
 
-    persona_choice = st.selectbox(
+    persona_choice = str_app.selectbox(
         "اختر شخصية ونمط TOMA:",
         ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"],
-        key="persona_v18"
+        key="persona_v19"
     )
 
-    st.divider()
-    st.subheader("💬 المحادثات المحفوظة")
-    session_names = list(st.session_state.sessions.keys())
-    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v18")
+    str_app.divider()
+    str_app.subheader("💬 المحادثات المحفوظة")
+    session_names = list(str_app.session_state.sessions.keys())
+    selected_session = str_app.selectbox("اختر المحادثة:", session_names, index=session_names.index(str_app.session_state.current_session), key="session_selector_v19")
     
-    if selected_session != st.session_state.current_session:
-        st.session_state.current_session = selected_session
-        st.rerun()
+    if selected_session != str_app.session_state.current_session:
+        str_app.session_state.current_session = selected_session
+        str_app.rerun()
 
-    col_btn1, col_btn2 = st.columns(2)
+    col_btn1, col_btn2 = str_app.columns(2)
     with col_btn1:
-        if st.button("➕ جديدة", key="new_chat_btn_v18"):
-            new_name = f"محادثة جديدة {len(st.session_state.sessions) + 1}"
-            st.session_state.sessions[new_name] = []
-            st.session_state.current_session = new_name
-            st.rerun()
+        if str_app.button("➕ جديدة", key="new_chat_btn_v19"):
+            new_name = f"محادثة جديدة {len(str_app.session_state.sessions) + 1}"
+            str_app.session_state.sessions[new_name] = []
+            str_app.session_state.current_session = new_name
+            str_app.rerun()
     with col_btn2:
-        if st.button("🗑️ مسح", key="clear_chat_btn_v18"):
-            st.session_state.sessions[st.session_state.current_session] = []
-            st.rerun()
+        if str_app.button("🗑️ مسح", key="clear_chat_btn_v19"):
+            str_app.session_state.sessions[str_app.session_state.current_session] = []
+            str_app.rerun()
 
-    current_chat_data = st.session_state.sessions[st.session_state.current_session]
+    current_chat_data = str_app.session_state.sessions[str_app.session_state.current_session]
     chat_text_export = ""
     for msg in current_chat_data:
         if msg.get("content"):
@@ -270,12 +270,12 @@ with st.sidebar:
             chat_text_export += f"{role_label}: {msg['content']}\n\n"
     
     if chat_text_export:
-        st.download_button(
+        str_app.download_button(
             label="📄 تصدير المحادثة (TXT)",
             data=chat_text_export,
-            file_name=f"{st.session_state.current_session}.txt",
+            file_name=f"{str_app.session_state.current_session}.txt",
             mime="text/plain",
-            key="export_chat_btn_v18"
+            key="export_chat_btn_v19"
         )
 
 def encode_image(uploaded_file):
@@ -300,41 +300,46 @@ def web_search(query, max_results=3):
     except Exception:
         return ""
 
-# --- دالة ترجمة هجينة (معجم مباشر + ذكاء اصطناعي) لضمان الدقة بنسبة 100% ---
+# --- دالة الترجمة المحدثة والمحصنة ضد الخلط ---
 def translate_prompt_to_english(client, arabic_prompt):
-    # قاموس مباشر للمعالم الشهيرة لتجنب أي أخطاء في الترجمة
+    # قاموس دقيق وموسع للمعالم والمواضيع الشائعة
     direct_translations = {
-        "مقام الشهيد": "Maqam Echahid monument in Algiers, three massive concrete arches landmark, realistic architecture",
-        "مقام الشهيد بالجزائر": "Maqam Echahid monument in Algiers, three massive concrete arches landmark, realistic architecture",
+        "مقام الشهيد": "Maqam Echahid monument Algiers, three concrete palm-frond shaped massive arches, clear sky, highly detailed architectural photography",
+        "مقام الشهيد بالجزائر": "Maqam Echahid monument Algiers, three concrete palm-frond shaped massive arches, clear sky, highly detailed architectural photography",
+        "جزائر": "Algiers city landscape, Mediterranean coast, white buildings, beautiful architecture",
+        "مسجد": "Islamic mosque architecture, beautiful minaret and dome, detailed exterior",
+        "سيارة": "modern sports car, high quality, realistic",
     }
     
-    # التحقق المباشر من القاموس
     cleaned_prompt = arabic_prompt.strip()
     for key, val in direct_translations.items():
         if key in cleaned_prompt:
             return val
 
-    # إذا لم يكن في القاموس، يتم الاعتماد على الذكاء الاصطناعي مع تعليمات صارمة
+    # ترجمة ذكية دقيقة مع منع الهلوسة وإجبار النموذج على إعطاء وصف بصري بحت
     try:
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
-                {"role": "system", "content": "You are a precise prompt engineer. Translate the user's Arabic description into a descriptive, clear English prompt for AI image generation. Output ONLY the English translation."},
+                {"role": "system", "content": "You are a professional visual prompt engineer for image generation. Translate the user's Arabic request into a clear, direct, highly accurate English visual prompt. Avoid abstract words, focus purely on physical appearance, subject, lighting, and style. Output ONLY the final English prompt string."},
                 {"role": "user", "content": arabic_prompt}
             ],
-            temperature=0.1
+            temperature=0.0
         )
         return response.choices[0].message.content.strip()
     except Exception:
         return arabic_prompt
 
 def fetch_generated_image(prompt, width=512, height=512, style=""):
-    full_prompt = f"{prompt}, {style}" if style else prompt
+    # إضافة محسنات دقة لمنع الخلط وجعل الصورة مركزة وواضحة
+    quality_modifiers = "masterpiece, highly detailed, sharp focus, professional photography"
+    full_prompt = f"{prompt}, {style}, {quality_modifiers}" if style else f"{prompt}, {quality_modifiers}"
+    
     encoded_prompt = urllib.parse.quote(full_prompt)
-    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&nologo=true"
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&nologo=true&seed=42"
     headers = {'User-Agent': 'Mozilla/5.0'}
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        response = requests.get(url, headers=headers, timeout=20)
         if response.status_code == 200:
             return response.content
     except Exception:
@@ -346,32 +351,32 @@ if api_key_input:
     try:
         client = Groq(api_key=clean_api_key)
         system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
-        messages = st.session_state.sessions[st.session_state.current_session]
+        messages = str_app.session_state.sessions[str_app.session_state.current_session]
 
-        with st.expander("🛠️ أدوات التفاعل والمرفقات (اضغط للفتح/الإغلاق)", expanded=False):
-            tab_upload, tab_image_gen = st.tabs(["📁 رفع الملفات والصوتيات", "🎨 توليد ورسم الصور"])
+        with str_app.expander("🛠️ أدوات التفاعل والمرفقات (اضغط للفتح/الإغلاق)", expanded=False):
+            tab_upload, tab_image_gen = str_app.tabs(["📁 رفع الملفات والصوتيات", "🎨 توليد ورسم الصور"])
             
             with tab_upload:
-                uploaded_file = st.file_uploader(
+                uploaded_file = str_app.file_uploader(
                     "إرفاق صورة، مستند (PDF/TXT) أو مقطع صوتي (MP3/WAV):",
                     type=["jpg", "jpeg", "png", "pdf", "txt", "mp3", "wav", "m4a"],
-                    key="doc_uploader_v18"
+                    key="doc_uploader_v19"
                 )
             
             with tab_image_gen:
-                col_img1, col_img2 = st.columns([2, 1])
+                col_img1, col_img2 = str_app.columns([2, 1])
                 with col_img1:
-                    gen_image_prompt = st.text_input("وصف الصورة المراد رسمها (اكتب بالعربية براحتك):", key="gen_image_prompt_v18")
+                    gen_image_prompt = str_app.text_input("وصف الصورة المراد رسمها (اكتب بالعربية براحتك):", key="gen_image_prompt_v19")
                 with col_img2:
-                    img_style = st.selectbox("النمط:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v18")
+                    img_style = str_app.selectbox("النمط:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v19")
                 
-                col_dim1, col_dim2 = st.columns([2, 1])
+                col_dim1, col_dim2 = str_app.columns([2, 1])
                 with col_dim1:
-                    img_aspect = st.selectbox("الأبعاد:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v18")
+                    img_aspect = str_app.selectbox("الأبعاد:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v19")
                 with col_dim2:
-                    st.write("")
-                    st.write("")
-                    generate_btn = st.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v18")
+                    str_app.write("")
+                    str_app.write("")
+                    generate_btn = str_app.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v19")
 
         if 'generate_btn' in locals() and generate_btn and gen_image_prompt:
             w, h = 512, 512
@@ -382,58 +387,58 @@ if api_key_input:
 
             messages.append({"role": "user", "content": f"طلب توليد صورة: {gen_image_prompt}"})
 
-            with st.chat_message("assistant"):
-                with st.spinner("جاري ترجمة الوصف ورسم الصورة بدقة..."):
+            with str_app.chat_message("assistant"):
+                with str_app.spinner("جاري معالجة الوصف وضبط دقة الرسم..."):
                     optimized_prompt = translate_prompt_to_english(client, gen_image_prompt)
                     img_bytes = fetch_generated_image(optimized_prompt, width=w, height=h, style=selected_style)
                     
                     if img_bytes:
-                        st.image(img_bytes, caption=f"رسمة: {gen_image_prompt}", width=400)
-                        st.download_button(
+                        str_app.image(img_bytes, caption=f"رسمة: {gen_image_prompt}", width=400)
+                        str_app.download_button(
                             label="📥 تنزيل الصورة",
                             data=img_bytes,
                             file_name="toma_generated_image.png",
                             mime="image/png",
-                            key=f"dl_gen_{len(messages)}_{st.session_state.current_session}"
+                            key=f"dl_gen_{len(messages)}_{str_app.session_state.current_session}"
                         )
-                        st.success("✨ تم توليد الصورة بنجاح!")
+                        str_app.success("✨ تم توليد الصورة بدقة عالية بنجاح!")
                         messages.append({
                             "role": "assistant",
                             "content": f"✨ تم توليد الصورة بنجاح بناءً على وصفك: ({gen_image_prompt})",
                             "generated_image_bytes": img_bytes
                         })
                     else:
-                        st.error("تعذر تحميل الصورة حالياً، يرجى إعادة المحاولة.")
-            st.rerun()
+                        str_app.error("تعذر تحميل الصورة حالياً، يرجى إعادة المحاولة.")
+            str_app.rerun()
 
         for idx, message in enumerate(messages):
-            with st.chat_message(message["role"]):
+            with str_app.chat_message(message["role"]):
                 if message.get("image"):
-                    st.image(message["image"], caption="الصورة المرفقة", width=250)
+                    str_app.image(message["image"], caption="الصورة المرفقة", width=250)
                 if message.get("generated_image_bytes"):
-                    st.image(message["generated_image_bytes"], caption="الصورة المولدة", width=400)
-                    st.download_button(
+                    str_app.image(message["generated_image_bytes"], caption="الصورة المولدة", width=400)
+                    str_app.download_button(
                         label="📥 تنزيل الصورة",
                         data=message["generated_image_bytes"],
                         file_name=f"toma_image_{idx}.png",
                         mime="image/png",
-                        key=f"dl_hist_{idx}_{st.session_state.current_session}"
+                        key=f"dl_hist_{idx}_{str_app.session_state.current_session}"
                     )
                 if message.get("content"):
-                    st.markdown(message["content"])
+                    str_app.markdown(message["content"])
                     
                     if message["role"] == "assistant" and enable_code_preview:
                         html_code = extract_html_code(message["content"])
                         if html_code:
-                            with st.expander("👁️ معاينة الكود المباشرة (Live Preview)", expanded=True):
+                            with str_app.expander("👁️ معاينة الكود المباشرة (Live Preview)", expanded=True):
                                 components.html(html_code, height=350, scrolling=True)
 
                     if message["role"] == "assistant" and enable_tts:
                         audio_fp = text_to_speech(message["content"])
                         if audio_fp:
-                            st.audio(audio_fp, format='audio/mp3')
+                            str_app.audio(audio_fp, format='audio/mp3')
 
-        prompt = st.chat_input("اكتب رسالتك هنا...")
+        prompt = str_app.chat_input("اكتب رسالتك هنا...")
 
         if prompt:
             file_type = uploaded_file.name.split(".")[-1].lower() if 'uploaded_file' in locals() and uploaded_file else None
@@ -444,8 +449,8 @@ if api_key_input:
 
             messages.append(user_msg)
 
-            with st.chat_message("assistant"):
-                with st.spinner("TOMA يفكر..."):
+            with str_app.chat_message("assistant"):
+                with str_app.spinner("TOMA يفكر..."):
                     try:
                         if file_type in ["mp3", "wav", "m4a"]:
                             transcription = client.audio.transcriptions.create(
@@ -492,13 +497,13 @@ if api_key_input:
                         messages.append({"role": "assistant", "content": bot_response})
                         
                     except Exception as api_e:
-                        st.error(f"حدث خطأ أثناء الاتصال: {api_e}")
-            st.rerun()
+                        str_app.error(f"حدث خطأ أثناء الاتصال: {api_e}")
+            str_app.rerun()
 
     except Exception as e:
-        st.error(f"حدث خطأ في الإعداد: {e}")
+        str_app.error(f"حدث خطأ في الإعداد: {e}")
 else:
-    st.markdown(f"""
+    str_app.markdown(f"""
     <div style="background-color: {card_bg}; color: {text_color}; padding: 35px; border-radius: 16px; text-align: center; margin-top: 50px; border: 1px solid #333333;">
         <h2 style="color: #FFFFFF !important; margin-bottom: 10px;">👋 أهلاً بك في TOMA CHAT Pro</h2>
         <p style="font-size: 16px; color: #BBBBBB !important;">يرجى إدخال <b>مفتاح Groq API Key</b> لبدء استخدام المنصة.</p>
