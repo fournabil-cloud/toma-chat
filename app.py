@@ -330,4 +330,211 @@ def web_search(query, max_results=3):
         context = "نتائج البحث المباشر في الويب:\n"
         for idx, r in enumerate(results, 1):
             context += f"{idx}. {r['title']}: {r['body']}\n"
-        return
+        return context
+    except Exception:
+        return ""
+
+def translate_prompt_to_english(client, arabic_prompt):
+    direct_translations = {
+        "مقام الشهيد": "Maqam Echahid monument Algiers, three concrete palm-frond shaped massive arches, clear sky, highly detailed architectural photography",
+        "مقام الشهيد بالجزائر": "Maqam Echahid monument Algiers, three concrete palm-frond shaped massive arches, clear sky, highly detailed architectural photography",
+        "جزائر": "Algiers city landscape, Mediterranean coast, white buildings, beautiful architecture",
+        "مسجد": "Islamic mosque architecture, beautiful minaret and dome, detailed exterior",
+    }
+    
+    cleaned_prompt = arabic_prompt.strip()
+    for key, val in direct_translations.items():
+        if key in cleaned_prompt:
+            return val
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": "You are a professional visual prompt engineer for image generation. Translate the user's Arabic request into a clear, direct, highly accurate English visual prompt. Avoid abstract words, focus purely on physical appearance, subject, lighting, and style. Output ONLY the final English prompt string."},
+                {"role": "user", "content": arabic_prompt}
+            ],
+            temperature=0.0
+        )
+        return response.choices[0].message.content.strip()
+    except Exception:
+        return arabic_prompt
+
+def fetch_generated_image(prompt, width=512, height=512, style=""):
+    quality_modifiers = "masterpiece, highly detailed, sharp focus, professional photography"
+    full_prompt = f"{prompt}, {style}, {quality_modifiers}" if style else f"{prompt}, {quality_modifiers}"
+    
+    encoded_prompt = urllib.parse.quote(full_prompt)
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&nologo=true&seed=42"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    try:
+        response = requests.get(url, headers=headers, timeout=20)
+        if response.status_code == 200:
+            return response.content
+    except Exception:
+        return None
+    return None
+
+if api_key_input:
+    clean_api_key = api_key_input.strip()
+    try:
+        client = Groq(api_key=clean_api_key)
+        system_instruction = persona_prompts.get(persona_choice, "أنت مساعد ذكي.")
+        messages = str_app.session_state.sessions[str_app.session_state.current_session]
+
+        with str_app.expander("🛠️ لوحة الأدوات والمرفقات الذكية", expanded=False):
+            tab_upload, tab_image_gen = str_app.tabs(["📁 رفع الملفات والمستندات والصوتيات", "🎨 توليد ورسم الصور الاحترافية"])
+            
+            with tab_upload:
+                uploaded_file = str_app.file_uploader(
+                    "إرفاق صورة، مستند (PDF/TXT) أو مقطع صوتي (MP3/WAV):",
+                    type=["jpg", "jpeg", "png", "pdf", "txt", "mp3", "wav", "m4a"],
+                    key="doc_uploader_v22"
+                )
+            
+            with tab_image_gen:
+                col_img1, col_img2 = str_app.columns([2, 1])
+                with col_img1:
+                    gen_image_prompt = str_app.text_input("وصف الصورة المراد رسمها:", key="gen_image_prompt_v22")
+                with col_img2:
+                    img_style = str_app.selectbox("النمط الفني:", ["افتراضي", "Realistic", "Anime", "Cinematic", "Oil Painting"], key="img_style_v22")
+                
+                col_dim1, col_dim2 = str_app.columns([2, 1])
+                with col_dim1:
+                    img_aspect = str_app.selectbox("أبعاد الصورة:", ["مربع (512x512)", "أفقي (768x512)", "عمودي (512x768)"], key="img_aspect_v22")
+                with col_dim2:
+                    str_app.write("")
+                    str_app.write("")
+                    generate_btn = str_app.button("🎨 ارسم الآن", use_container_width=True, key="gen_image_btn_v22")
+
+        if 'generate_btn' in locals() and generate_btn and gen_image_prompt:
+            w, h = 512, 512
+            if "أفقي" in img_aspect: w, h = 768, 512
+            elif "عمودي" in img_aspect: w, h = 512, 768
+
+            selected_style = "" if img_style == "افتراضي" else img_style
+
+            messages.append({"role": "user", "content": f"طلب توليد صورة: {gen_image_prompt}"})
+
+            with str_app.chat_message("assistant"):
+                with str_app.spinner("جاري معالجة الوصف وضبط دقة الرسم..."):
+                    optimized_prompt = translate_prompt_to_english(client, gen_image_prompt)
+                    img_bytes = fetch_generated_image(optimized_prompt, width=w, height=h, style=selected_style)
+                    
+                    if img_bytes:
+                        str_app.image(img_bytes, caption=f"رسمة: {gen_image_prompt}", width=400)
+                        str_app.download_button(
+                            label="📥 تنزيل الصورة",
+                            data=img_bytes,
+                            file_name="toma_generated_image.png",
+                            mime="image/png",
+                            key=f"dl_gen_{len(messages)}_{str_app.session_state.current_session}"
+                        )
+                        str_app.success("✨ تم توليد الصورة بدقة عالية بنجاح!")
+                        messages.append({
+                            "role": "assistant",
+                            "content": f"✨ تم توليد الصورة بنجاح بناءً على وصفك: ({gen_image_prompt})",
+                            "generated_image_bytes": img_bytes
+                        })
+                    else:
+                        str_app.error("تعذر تحميل الصورة حالياً، يرجى إعادة المحاولة.")
+            str_app.rerun()
+
+        for idx, message in enumerate(messages):
+            with str_app.chat_message(message["role"]):
+                if message.get("image"):
+                    str_app.image(message["image"], caption="الصورة المرفقة", width=250)
+                if message.get("generated_image_bytes"):
+                    str_app.image(message["generated_image_bytes"], caption="الصورة المولدة", width=400)
+                    str_app.download_button(
+                        label="📥 تنزيل الصورة",
+                        data=message["generated_image_bytes"],
+                        file_name=f"toma_image_{idx}.png",
+                        mime="image/png",
+                        key=f"dl_hist_{idx}_{str_app.session_state.current_session}"
+                    )
+                if message.get("content"):
+                    str_app.markdown(message["content"])
+                    
+                    if message["role"] == "assistant" and enable_code_preview:
+                        html_code = extract_html_code(message["content"])
+                        if html_code:
+                            with str_app.expander("👁️ معاينة الكود المباشرة (Live Preview)", expanded=True):
+                                components.html(html_code, height=350, scrolling=True)
+
+                    if message["role"] == "assistant" and enable_tts:
+                        audio_fp = text_to_speech(message["content"])
+                        if audio_fp:
+                            str_app.audio(audio_fp, format='audio/mp3')
+
+        prompt = str_app.chat_input("اكتب رسالتك هنا...")
+
+        if prompt:
+            file_type = uploaded_file.name.split(".")[-1].lower() if 'uploaded_file' in locals() and uploaded_file else None
+            user_msg = {"role": "user", "content": prompt}
+
+            if file_type in ["jpg", "jpeg", "png"]:
+                user_msg["image"] = uploaded_file
+
+            messages.append(user_msg)
+
+            with str_app.chat_message("assistant"):
+                with str_app.spinner("TOMA يفكر..."):
+                    try:
+                        if file_type in ["mp3", "wav", "m4a"]:
+                            transcription = client.audio.transcriptions.create(
+                                file=(uploaded_file.name, uploaded_file.getvalue()),
+                                model="whisper-large-v3-turbo"
+                            )
+                            audio_text = transcription.text
+                            augmented_prompt = f"النص المستخرج من الصوت المرفق:\n\"\"\"\n{audio_text}\n\"\"\"\n\nطلب المستخدم حوله:\n{prompt}"
+                            groq_messages = [{"role": "system", "content": system_instruction}, {"role": "user", "content": augmented_prompt}]
+                            completion = client.chat.completions.create(model=model_choice, messages=groq_messages, temperature=0.5)
+
+                        elif file_type in ["jpg", "jpeg", "png"]:
+                            base64_img = encode_image(uploaded_file)
+                            vision_messages = [{"role": "user", "content": [{"type": "text", "text": prompt}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}}]}]
+                            completion = client.chat.completions.create(model="llama-3.2-11b-vision-preview", messages=vision_messages)
+
+                        elif file_type in ["pdf", "txt"]:
+                            if file_type == "pdf": doc_text = extract_text_from_pdf(uploaded_file)
+                            else: doc_text = uploaded_file.getvalue().decode("utf-8")
+                            augmented_prompt = f"المستند المرفق:\n\"\"\"\n{doc_text[:15000]}\n\"\"\"\n\nبناءً على المستند أعلاه، إجابة السؤال التالي:\n{prompt}"
+                            groq_messages = [{"role": "system", "content": system_instruction}, {"role": "user", "content": augmented_prompt}]
+                            completion = client.chat.completions.create(model=model_choice, messages=groq_messages, temperature=0.5)
+
+                        else:
+                            web_context = ""
+                            if enable_web_search or deep_research_mode:
+                                num_res = 6 if deep_research_mode else 3
+                                web_context = web_search(prompt, max_results=num_res)
+
+                            groq_messages = [{"role": "system", "content": system_instruction}]
+                            for m in messages[-8:]:
+                                if m.get("content") and "طلب توليد صورة:" not in m["content"]:
+                                    groq_messages.append({"role": m["role"], "content": m["content"]})
+
+                            if web_context:
+                                if deep_research_mode:
+                                    groq_messages.append({"role": "system", "content": f"قم بإعداد تقرير مفصل وشامل بناءً على نتائج البحث التالية:\n{web_context}"})
+                                else:
+                                    groq_messages.append({"role": "system", "content": f"معلومات إضافية من الويب للرد:\n{web_context}"})
+
+                            completion = client.chat.completions.create(model=model_choice, messages=groq_messages, temperature=0.7)
+                        
+                        bot_response = completion.choices[0].message.content
+                        messages.append({"role": "assistant", "content": bot_response})
+                        
+                    except Exception as api_e:
+                        str_app.error(f"حدث خطأ أثناء الاتصال: {api_e}")
+            str_app.rerun()
+
+    except Exception as e:
+        str_app.error(f"حدث خطأ في الإعداد: {e}")
+else:
+    str_app.markdown(f"""
+    <div style="background-color: {card_bg}; color: {text_color}; padding: 35px; border-radius: 16px; text-align: center; margin-top: 50px; border: 1px solid #DADCE0;">
+        <h2 style="color: {text_color} !important; margin-bottom: 10px;">👋 أهلاً بك في TOMA CHAT Pro</h2>
+        <p style="font-size: 16px; color: #5F6368 !important;">يرجى إدخال <b>مفتاح Groq API Key</b> لبدء استخدام المنصة.</p>
+    </div>
+    """, unsafe_allow_html=True)
