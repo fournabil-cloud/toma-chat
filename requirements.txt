@@ -1,6 +1,7 @@
 streamlit
 groq
-Pillow
+pillow
 requests
 pypdf
 duckduckgo_search
+gTTS
