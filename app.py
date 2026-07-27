@@ -9,7 +9,7 @@ from pypdf import PdfReader
 from duckduckgo_search import DDGS
 
 # -- إعداد الصفحة --
-st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="centered")
+st.set_page_config(page_title="TOMA CHAT Pro", page_icon="⚡", layout="wide")
 
 if "theme" not in st.session_state:
     st.session_state.theme = "داكن (Dark)"
@@ -23,7 +23,7 @@ chat_bg = "#343541" if is_dark else "#E5E5EA"
 input_bg = "#2F2F2F" if is_dark else "#FFFFFF"
 input_text = "#FFFFFF" if is_dark else "#000000"
 
-# --- أكواد CSS المحسنة للوضوح والتناسق ---
+# --- أكواد CSS المحسنة لإصلاح حجب العناصر وحل مشكلة الشريط السفلي ---
 st.markdown(f"""
     <style>
         .stApp {{
@@ -31,6 +31,12 @@ st.markdown(f"""
             color: {text_color};
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }}
+        
+        /* إضافة مساحة سفليّة كافية لمنع التغطية على المحتوى */
+        .main .block-container {{
+            padding-bottom: 120px !important;
+        }}
+
         .main div[data-testid="stWidgetLabel"] p {{
             color: #FFFFFF !important;
             font-size: 15px !important;
@@ -44,10 +50,13 @@ st.markdown(f"""
             color: #FFFFFF !important;
             font-size: 22px !important;
         }}
+        
+        /* القائمة الجانبية (Sidebar) */
         [data-testid="stSidebar"] {{
             background-color: {sidebar_bg};
             color: {sidebar_text};
             border-left: 1px solid #303030;
+            z-index: 99999 !important; /* لضمان عدم حجب القائمة الجانبية إطلاقاً */
         }}
         [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {{
             color: #FFFFFF !important;
@@ -56,16 +65,26 @@ st.markdown(f"""
         [data-testid="stSidebar"] label[data-testid="stWidgetLabel"] p {{
             color: #E0E0E0 !important;
         }}
+        
+        /* تصحيح تموضع شارات وإدخال المحادثة السفلي كي لا يغطي القائمة الجانبية */
         #MainMenu, header, footer {{ visibility: hidden; }}
+        
         [data-testid="stChatInput"] {{
             position: fixed;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70%;
-            background-color: {bg_color};
-            z-index: 100;
+            bottom: 20px;
+            right: 20px;
+            left: 360px; /* الابتعاد عن الشريط الجانبي */
+            width: auto;
+            background-color: transparent;
+            z-index: 1000;
         }}
+        
+        @media (max-width: 768px) {{
+            [data-testid="stChatInput"] {{
+                left: 20px;
+            }}
+        }}
+
         [data-testid="stChatInput"] textarea {{
             background-color: {input_bg};
             color: {input_text};
@@ -98,13 +117,13 @@ if "current_session" not in st.session_state:
 # --- القائمة الجانبية (Sidebar) ---
 with st.sidebar:
     st.header("⚙️ إعدادات TOMA")
-    api_key_input = st.text_input("أدخل مفتاح Groq API Key:", type="password", key="groq_api_key_v4")
+    api_key_input = st.text_input("أدخل مفتاح Groq API Key:", type="password", key="groq_api_key_v5")
 
     st.divider()
     enable_web_search = st.checkbox("🌐 تفعيل البحث المباشر في الويب", value=False, key="web_search_toggle")
 
     st.divider()
-    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v4")
+    new_theme = st.selectbox("مظهر التطبيق:", ["داكن (Dark)", "فاتح (Light)"], index=0 if is_dark else 1, key="theme_selector_v5")
     if new_theme != st.session_state.theme:
         st.session_state.theme = new_theme
         st.rerun()
@@ -112,7 +131,7 @@ with st.sidebar:
     st.divider()
     st.subheader("💬 المحادثات المحفوظة")
     session_names = list(st.session_state.sessions.keys())
-    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v4")
+    selected_session = st.selectbox("اختر المحادثة:", session_names, index=session_names.index(st.session_state.current_session), key="session_selector_v5")
     
     if selected_session != st.session_state.current_session:
         st.session_state.current_session = selected_session
@@ -120,13 +139,13 @@ with st.sidebar:
 
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
-        if st.button("➕ جديدة", key="new_chat_btn_v4"):
+        if st.button("➕ جديدة", key="new_chat_btn_v5"):
             new_name = f"محادثة جديدة {len(st.session_state.sessions) + 1}"
             st.session_state.sessions[new_name] = []
             st.session_state.current_session = new_name
             st.rerun()
     with col_btn2:
-        if st.button("🗑️ مسح", key="clear_chat_btn_v4"):
+        if st.button("🗑️ مسح", key="clear_chat_btn_v5"):
             st.session_state.sessions[st.session_state.current_session] = []
             st.rerun()
 
@@ -144,20 +163,20 @@ with st.sidebar:
             data=chat_text_export,
             file_name=f"{st.session_state.current_session}.txt",
             mime="text/plain",
-            key="export_chat_btn"
+            key="export_chat_btn_v5"
         )
 
     st.divider()
     model_choice = st.selectbox(
         "اختر نموذج الذكاء الاصطناعي:",
         ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama-3.2-11b-vision-preview"],
-        key="groq_model_v4"
+        key="groq_model_v5"
     )
 
     persona_choice = st.selectbox(
         "اختر شخصية ونمط TOMA:",
         ["مساعد عام ذكي وودود", "خبير برمجة وتقنية (محترف)", "كاتب محتوى ومبدع", "مستشار تسويق وأعمال", "مختصر ومباشر جداً"],
-        key="persona_v4"
+        key="persona_v5"
     )
 
 # --- تعريف الشخصيات ---
@@ -230,16 +249,16 @@ if api_key_input:
                 if message.get("content"):
                     st.markdown(message["content"])
 
-        # --- قسم أدوات المرفقات المتقدمة والجلوس المباشر ---
+        # --- أدوات المرفقات والتفاعل ---
         st.subheader("📁 أدوات التفاعل والمرفقات:")
         col1, col2 = st.columns(2)
         with col1:
-            uploaded_file = st.file_uploader("📷/📄/🎙️ رفع صورة، مستند (PDF/TXT) أو صوت (MP3/WAV):", type=["jpg", "jpeg", "png", "pdf", "txt", "mp3", "wav", "m4a"], key="doc_uploader_v4")
+            uploaded_file = st.file_uploader("📷/📄/🎙️ رفع صورة، مستند (PDF/TXT) أو صوت (MP3/WAV):", type=["jpg", "jpeg", "png", "pdf", "txt", "mp3", "wav", "m4a"], key="doc_uploader_v5")
         with col2:
-            gen_image_prompt = st.text_input("🖌️ وصف الصورة المراد رسمها:", key="gen_image_prompt_v4")
-            img_style = st.selectbox("نمط الرسم:", ["افتراضي", "واقعي Realistic", "أنيمي Anime", "سينمائي Cinematic", "رسم زيتي Oil Painting"], key="img_style_v4")
-            img_aspect = st.selectbox("أبعاد الصورة:", ["مربع (512x512)", "أفقي (768x512)", "عمودي/ستوري (512x768)"], key="img_aspect_v4")
-            generate_btn = st.button("🎨 ارسم الصورة", key="gen_image_btn_v4")
+            gen_image_prompt = st.text_input("🖌️ وصف الصورة المراد رسمها:", key="gen_image_prompt_v5")
+            img_style = st.selectbox("نمط الرسم:", ["افتراضي", "واقعي Realistic", "أنيمي Anime", "سينمائي Cinematic", "رسم زيتي Oil Painting"], key="img_style_v5")
+            img_aspect = st.selectbox("أبعاد الصورة:", ["مربع (512x512)", "أفقي (768x512)", "عمودي/ستوري (512x768)"], key="img_aspect_v5")
+            generate_btn = st.button("🎨 ارسم الصورة", key="gen_image_btn_v5")
 
         # معالجة رسم الصورة
         if generate_btn and gen_image_prompt:
@@ -299,7 +318,6 @@ if api_key_input:
             with st.chat_message("assistant"):
                 with st.spinner("TOMA يفكر..."):
                     try:
-                        # 1. إذا كان الملف صوتياً (Whisper)
                         if file_type in ["mp3", "wav", "m4a"]:
                             transcription = client.audio.transcriptions.create(
                                 file=(uploaded_file.name, uploaded_file.getvalue()),
@@ -310,13 +328,11 @@ if api_key_input:
                             groq_messages = [{"role": "system", "content": system_instruction}, {"role": "user", "content": augmented_prompt}]
                             completion = client.chat.completions.create(model=model_choice, messages=groq_messages, temperature=0.5)
 
-                        # 2. إذا كان الملف صورة (Vision)
                         elif file_type in ["jpg", "jpeg", "png"]:
                             base64_img = encode_image(uploaded_file)
                             vision_messages = [{"role": "user", "content": [{"type": "text", "text": prompt}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_img}"}}]}]
                             completion = client.chat.completions.create(model="llama-3.2-11b-vision-preview", messages=vision_messages)
 
-                        # 3. إذا كان الملف PDF أو TXT
                         elif file_type in ["pdf", "txt"]:
                             if file_type == "pdf": doc_text = extract_text_from_pdf(uploaded_file)
                             else: doc_text = uploaded_file.getvalue().decode("utf-8")
@@ -324,7 +340,6 @@ if api_key_input:
                             groq_messages = [{"role": "system", "content": system_instruction}, {"role": "user", "content": augmented_prompt}]
                             completion = client.chat.completions.create(model=model_choice, messages=groq_messages, temperature=0.5)
 
-                        # 4. محادثة عادية أو محادثة مع البحث في الويب
                         else:
                             web_context = ""
                             if enable_web_search:
