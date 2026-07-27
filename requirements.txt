@@ -3,3 +3,4 @@ groq
 Pillow
 requests
 pypdf
+duckduckgo_search
