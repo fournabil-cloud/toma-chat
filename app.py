@@ -36,30 +36,24 @@ else:
     input_bg = "#ffffff"
     border_color = "#d1d5db"
 
-# 3. حقن الـ CSS المعدل لتصحيح مكان الشريط الجانبي ودعم الكتابة العربية
+# 3. حقن الـ CSS المعدل
 st.markdown(
     f"""
     <style>
-    /* خلفية التطبيق العامة */
     .stApp {{
         background-color: {bg_color};
         color: {text_color};
     }}
-    
-    /* بقاء الشريط الجانبي في مكانه الطبيعي (اليسار) مع دعم النصوص العربية بداخله */
     [data-testid="stSidebar"] {{
         background-color: {sidebar_bg};
         color: {text_color};
         direction: rtl;
         text-align: right;
     }}
-    
-    /* تنسيق الواجهة الرئيسية لتكون متوافقة مع العربية */
     .main .block-container {{
         direction: rtl;
         text-align: right;
     }}
-
     .stTextInput input, .stTextArea textarea {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
@@ -67,24 +61,20 @@ st.markdown(
         direction: rtl;
         text-align: right;
     }}
-    
     .stSelectbox div[data-baseweb="select"] {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
         direction: rtl;
     }}
-    
     h1, h2, h3, h4, h5, h6, p, span, label {{
         color: {text_color} !important;
     }}
-    
     .stChatInput input {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
         direction: rtl;
         text-align: right;
     }}
-    
     .streamlit-expanderHeader {{
         background-color: {sidebar_bg} !important;
         color: {text_color} !important;
@@ -136,23 +126,28 @@ with st.sidebar:
 # 5. الواجهة الرئيسية للدردشة وتوليد الصور
 st.title("TOMA CHAT Pro")
 
-# لوحة الأدوات وتوليد الصور التفاعلية
+# لوحة الأدوات وتوليد الصور الفاعلة
 with st.expander("🛠️ لوحة الأدوات والمرفقات الذكية وتوليد الصور", expanded=False):
-    st.write("قم بتفعيل الأدوات المساعدة أو أدخل وصفاً لتوليد صورة احترافية عبر الذكاء الاصطناعي.")
+    st.write("قم بتفعيل الأدوات المساعدة أو أدخل وصفاً دقيقاً لتوليد صورة فورية عبر الذكاء الاصطناعي.")
     
     col_img1, col_img2 = st.columns([3, 1])
     with col_img1:
-        image_prompt = st.text_input("وصف الصورة المراد توليدها:", placeholder="مثال: شعار تقني مضيء بتصميم مستقبلي...")
+        image_prompt = st.text_input("وصف الصورة المراد توليدها:", placeholder="مثال: A futuristic glowing cybernetic wolf...")
     with col_img2:
         st.write("")
         st.write("")
-        gen_btn = st.button("🎨 توليد الصورة")
+        gen_btn = st.button("🎨 توليد الصورة الآن")
         
     if gen_btn:
         if image_prompt:
-            with st.spinner("جاري تصميم وتوليد الصورة بدقة عالية..."):
+            with st.spinner("جاري إرسال الوصف لمحرك توليد الصور ورسم اللوحة..."):
+                import urllib.parse
+                # استخدام محرك مجاني وعالي الجودة لتوليد الصور مباشرة بناءً على الوصف النصي
+                encoded_prompt = urllib.parse.quote(image_prompt)
+                image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}"
+                
                 st.success("تم توليد الصورة بنجاح!")
-                st.image("https://via.placeholder.com/500x300.png?text=Generated+AI+Image+Preview", caption=image_prompt)
+                st.image(image_url, caption=f"الوصف: {image_prompt}", use_column_width=True)
         else:
             st.warning("الرجاء كتابة وصف الصورة في الحقل المخصص أولاً.")
 
