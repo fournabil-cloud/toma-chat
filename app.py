@@ -8,7 +8,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. إعداد الشريط الجانبي والشعار واختيار الثيم
+# 2. إعداد الشريط الجانبي واختيار الثيم أولاً
 with st.sidebar:
     try:
         st.image("logo.png", use_column_width=True)
@@ -22,6 +22,7 @@ with st.sidebar:
         ["الوضع الداكن (Dark)", "الوضع الفاتح (Light)"]
     )
 
+# تخصيص الألوان بناءً على اختيار الثيم
 if theme_mode == "الوضع الداكن (Dark)":
     bg_color = "#0e1117"
     sidebar_bg = "#161b22"
@@ -35,7 +36,7 @@ else:
     input_bg = "#ffffff"
     border_color = "#d1d5db"
 
-# 3. حقن الـ CSS
+# 3. تنسيق الواجهة والـ CSS العام
 st.markdown(
     f"""
     <style>
@@ -85,7 +86,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 4. الشريط الجانبي
+# 4. محتوى الشريط الجانبي الكامل
 with st.sidebar:
     st.markdown("---")
     groq_key = st.text_input("مفتاح Groq API:", type="password", placeholder="أدخل مفتاحك هنا...")
@@ -125,7 +126,7 @@ with st.sidebar:
 # 5. الواجهة الرئيسية
 st.title("TOMA CHAT Pro")
 
-# لوحة توليد الصور المحدثة والمضمونة
+# لوحة الأدوات وتوليد الصور
 with st.expander("🛠️ لوحة الأدوات والمرفقات الذكية وتوليد الصور", expanded=False):
     st.write("أدخل وصفاً لتوليد صورة فورية:")
     
@@ -140,7 +141,6 @@ with st.expander("🛠️ لوحة الأدوات والمرفقات الذكي�
     if gen_btn:
         if image_prompt:
             with st.spinner("جاري معالجة ورسم الصورة..."):
-                # استخدام رابط موثوق لتوليد وعرض الصورة الفورية بناءً على النص المدخل
                 safe_prompt = urllib.parse.quote(image_prompt)
                 image_url = f"https://image.pollinations.ai/prompt/{safe_prompt}?width=800&height=500&nologo=true"
                 
@@ -149,7 +149,7 @@ with st.expander("🛠️ لوحة الأدوات والمرفقات الذكي�
         else:
             st.warning("الرجاء كتابة وصف الصورة أولاً.")
 
-# 6. نظام الدردشة
+# 6. نظام الذاكرة وعرض الدردشة
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
