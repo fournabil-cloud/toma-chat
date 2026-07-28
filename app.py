@@ -1,4 +1,5 @@
 import streamlit as st
+import urllib.parse
 
 # 1. إعدادات الصفحة الأساسية
 st.set_page_config(
@@ -16,13 +17,11 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # خيار تبديل الألوان (الثيم)
     theme_mode = st.selectbox(
         "🎨 مظهر الواجهة:", 
         ["الوضع الداكن (Dark)", "الوضع الفاتح (Light)"]
     )
 
-# ضبط الألوان بناءً على اختيار الثيم
 if theme_mode == "الوضع الداكن (Dark)":
     bg_color = "#0e1117"
     sidebar_bg = "#161b22"
@@ -36,7 +35,7 @@ else:
     input_bg = "#ffffff"
     border_color = "#d1d5db"
 
-# 3. حقن الـ CSS المعدل
+# 3. حقن الـ CSS
 st.markdown(
     f"""
     <style>
@@ -86,7 +85,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 4. محتوى الشريط الجانبي المتقدم
+# 4. الشريط الجانبي
 with st.sidebar:
     st.markdown("---")
     groq_key = st.text_input("مفتاح Groq API:", type="password", placeholder="أدخل مفتاحك هنا...")
@@ -123,16 +122,16 @@ with st.sidebar:
             st.session_state.messages = []
             st.rerun()
 
-# 5. الواجهة الرئيسية للدردشة وتوليد الصور
+# 5. الواجهة الرئيسية
 st.title("TOMA CHAT Pro")
 
-# لوحة الأدوات وتوليد الصور الفاعلة
+# لوحة توليد الصور المحدثة والمضمونة
 with st.expander("🛠️ لوحة الأدوات والمرفقات الذكية وتوليد الصور", expanded=False):
-    st.write("قم بتفعيل الأدوات المساعدة أو أدخل وصفاً دقيقاً لتوليد صورة فورية عبر الذكاء الاصطناعي.")
+    st.write("أدخل وصفاً لتوليد صورة فورية:")
     
     col_img1, col_img2 = st.columns([3, 1])
     with col_img1:
-        image_prompt = st.text_input("وصف الصورة المراد توليدها:", placeholder="مثال: A futuristic glowing cybernetic wolf...")
+        image_prompt = st.text_input("وصف الصورة المراد توليدها:", placeholder="مثال: A futuristic cyberpunk city...")
     with col_img2:
         st.write("")
         st.write("")
@@ -140,18 +139,17 @@ with st.expander("🛠️ لوحة الأدوات والمرفقات الذكي�
         
     if gen_btn:
         if image_prompt:
-            with st.spinner("جاري إرسال الوصف لمحرك توليد الصور ورسم اللوحة..."):
-                import urllib.parse
-                # استخدام محرك مجاني وعالي الجودة لتوليد الصور مباشرة بناءً على الوصف النصي
-                encoded_prompt = urllib.parse.quote(image_prompt)
-                image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}"
+            with st.spinner("جاري معالجة ورسم الصورة..."):
+                # استخدام رابط موثوق لتوليد وعرض الصورة الفورية بناءً على النص المدخل
+                safe_prompt = urllib.parse.quote(image_prompt)
+                image_url = f"https://image.pollinations.ai/prompt/{safe_prompt}?width=800&height=500&nologo=true"
                 
                 st.success("تم توليد الصورة بنجاح!")
                 st.image(image_url, caption=f"الوصف: {image_prompt}", use_column_width=True)
         else:
-            st.warning("الرجاء كتابة وصف الصورة في الحقل المخصص أولاً.")
+            st.warning("الرجاء كتابة وصف الصورة أولاً.")
 
-# 6. نظام إدارة الذاكرة وعرض الرسائل
+# 6. نظام الدردشة
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -170,11 +168,11 @@ if user_input:
         st.markdown(user_input)
 
     with st.chat_message("assistant"):
-        with st.spinner("TOMA يفكر ويقوم بإعداد الرد..."):
+        with st.spinner("TOMA يفكر..."):
             if groq_key:
-                bot_response = f"أهلاً بك يا نبيل! لقد استلمت رسالتك وأعمل بنموذج ({model_choice}) مع تفعيل شخصية ({persona_choice}). كيف يمكنني مساعدتك أكثر في مشروعك؟"
+                bot_response = f"أهلاً بك يا نبيل! أنا جاهز للرد بناءً على طلبك باستخدام نموذج ({model_choice})."
             else:
-                bot_response = "أهلاً بك! يرجى إدخال مفتاح `Groq API Key` من الشريط الجانبي لكي أتمكن من الرد عليك بشكل كامل."
+                bot_response = "أهلاً بك! يرجى إدخال مفتاح `Groq API Key` من الشريط الجانبي لتتم المحادثة بنجاح."
             
             st.markdown(bot_response)
             st.session_state.messages.append({"role": "assistant", "content": bot_response})
