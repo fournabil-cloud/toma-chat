@@ -64,36 +64,21 @@ st.markdown(
         border: 1px solid #30363d;
         direction: rtl;
     }
-    
-    /* تنسيق حاوية الشعار */
-    .logo-container {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 0;
-        border-bottom: 1px solid #30363d;
-        margin-bottom: 15px;
-    }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# 3. الشريط الجانبي (Sidebar) مع الشعار
+# 3. الشريط الجانبي (Sidebar) مع شعارك الحقيقي
 with st.sidebar:
-    # تصميم الشعار (Logo) باستخدام HTML/CSS داخل الشريط الجانبي
-    st.markdown(
-        """
-        <div class="logo-container">
-            <span style="font-size: 28px;">🤖</span>
-            <div>
-                <h3 style="margin: 0; font-size: 18px; color: #ffffff;">TOMA CHAT</h3>
-                <p style="margin: 0; font-size: 11px; color: #8b949e;">Pro AI Assistant</p>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    # عرض شعارك الخاص (تأكد من مطابقة اسم الملف هنا مع اسم الصورة في مشروعك)
+    try:
+        st.image("logo.png", use_column_width=True)
+    except:
+        # كود احتياطي في حال لم يتم العثور على اسم الملف تماماً
+        st.image("ChatGPT Image 27 يوليو 2026، 10_39_53 م.png", use_column_width=True)
+
+    st.markdown("---")
 
     groq_key = st.text_input("مفتاح Groq API:", type="password")
 
