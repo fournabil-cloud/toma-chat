@@ -7,79 +7,101 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. كود الـ CSS المتقدم (الوضع الداكن + ضبط الاتجاه العربي RTL بالكامل)
+# 2. إنشاء زر تبديل الثيمات في الشريط الجانبي قبل تحميل الـ CSS
+with st.sidebar:
+    # عرض شعارك الخاص
+    try:
+        st.image("logo.png", use_column_width=True)
+    except:
+        st.image("ChatGPT Image 27 يوليو 2026، 10_39_53 م.png", use_column_width=True)
+
+    st.markdown("---")
+    
+    # خانة تبديل الألوان (الثيم الداكن أو الفاتح)
+    theme_mode = st.selectbox(
+        "🎨 مظهر الواجهة:", 
+        ["الوضع الداكن (Dark)", "الوضع الفاتح (Light)"]
+    )
+
+# تحديد الألوان بناءً على اختيار المستخدم
+if theme_mode == "الوضع الداكن (Dark)":
+    bg_color = "#0e1117"
+    sidebar_bg = "#161b22"
+    text_color = "#ffffff"
+    input_bg = "#21262d"
+    border_color = "#30363d"
+else:
+    bg_color = "#ffffff"
+    sidebar_bg = "#f0f2f6"
+    text_color = "#000000"
+    input_bg = "#ffffff"
+    border_color = "#d1d5db"
+
+# 3. حقن الـ CSS الديناميكي بناءً على الثيم المختار وتعديل اتجاه الكتابة RTL
 st.markdown(
-    """
+    f"""
     <style>
     /* فرض اتجاه الكتابة من اليمين ليسار ودعم اللغة العربية */
-    html, body, [class*="css"] {
+    html, body, [class*="css"] {{
         direction: rtl;
         text-align: right;
-    }
+    }}
     
     /* خلفية التطبيق العامة */
-    .stApp {
-        background-color: #0e1117;
-        color: #ffffff;
-    }
+    .stApp {{
+        background-color: {bg_color};
+        color: {text_color};
+    }}
     
     /* خلفية الشريط الجانبي */
-    [data-testid="stSidebar"] {
-        background-color: #161b22;
-        color: #ffffff;
+    [data-testid="stSidebar"] {{
+        background-color: {sidebar_bg};
+        color: {text_color};
         direction: rtl;
         text-align: right;
-    }
+    }}
     
     /* تنسيق صناديق الكتابة */
-    .stTextInput input, .stTextArea textarea {
-        background-color: #21262d !important;
-        color: #ffffff !important;
-        border-color: #30363d !important;
+    .stTextInput input, .stTextArea textarea {{
+        background-color: {input_bg} !important;
+        color: {text_color} !important;
+        border-color: {border_color} !important;
         text-align: right;
-    }
+    }}
     
     /* تنسيق القوائم المنسدلة */
-    .stSelectbox div[data-baseweb="select"] {
-        background-color: #21262d !important;
-        color: #ffffff !important;
-    }
+    .stSelectbox div[data-baseweb="select"] {{
+        background-color: {input_bg} !important;
+        color: {text_color} !important;
+    }}
     
     /* النصوص والعناوين العامة */
-    h1, h2, h3, h4, h5, h6, p, span, label {
-        color: #ffffff !important;
-    }
+    h1, h2, h3, h4, h5, h6, p, span, label {{
+        color: {text_color} !important;
+    }}
     
     /* صندوق الكتابة السفلي للدردشة */
-    .stChatInput input {
-        background-color: #21262d !important;
-        color: #ffffff !important;
+    .stChatInput input {{
+        background-color: {input_bg} !important;
+        color: {text_color} !important;
         text-align: right;
-    }
+    }}
 
     /* لوحة الأدوات (Expander) */
-    .streamlit-expanderHeader {
-        background-color: #161b22 !important;
-        color: #ffffff !important;
-        border: 1px solid #30363d;
+    .streamlit-expanderHeader {{
+        background-color: {sidebar_bg} !important;
+        color: {text_color} !important;
+        border: 1px solid {border_color};
         direction: rtl;
-    }
+    }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# 3. الشريط الجانبي (Sidebar) مع شعارك الحقيقي
+# 4. باقي محتوى الشريط الجانبي (Sidebar)
 with st.sidebar:
-    # عرض شعارك الخاص (تأكد من مطابقة اسم الملف هنا مع اسم الصورة في مشروعك)
-    try:
-        st.image("logo.png", use_column_width=True)
-    except:
-        # كود احتياطي في حال لم يتم العثور على اسم الملف تماماً
-        st.image("ChatGPT Image 27 يوليو 2026، 10_39_53 م.png", use_column_width=True)
-
     st.markdown("---")
-
     groq_key = st.text_input("مفتاح Groq API:", type="password")
 
     st.markdown("---")
@@ -111,7 +133,7 @@ with st.sidebar:
         if st.button("🗑️ مسح"):
             st.session_state.messages = []
 
-# 4. الواجهة الرئيسية
+# 5. الواجهة الرئيسية
 st.title("TOMA CHAT Pro")
 
 # لوحة الأدوات وتوليد الصور
@@ -124,7 +146,7 @@ with st.expander("🛠️ لوحة الأدوات والمرفقات الذكي�
         else:
             st.warning("الرجاء كتابة وصف الصورة أولاً.")
 
-# 5. نظام المحادثة
+# 6. نظام المحادثة
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
