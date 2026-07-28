@@ -1,9 +1,11 @@
 import streamlit as st
 
-# 1. إعدادات الصفحة (يجب أن تكون أول أمر Streamlit في الملف)
-st.set_page_config(page_title="TOMA CHAT Pro", layout="wide")
+# 1. إعدادات الصفحة الأساسية
+st.set_page_config(
+    page_title="TOMA CHAT Pro", layout="wide", initial_sidebar_state="expanded"
+)
 
-# 2. أضف كود CSS هنا مباشرة (السطر المناسب لتبدأ الواجهة بالوضع الداكن)
+# 2. كود CSS لتفعيل الوضع الداكن وتنسيق الواجهة بالكامل
 st.markdown(
     """
     <style>
@@ -19,7 +21,7 @@ st.markdown(
         color: #ffffff;
     }
     
-    /* تنسيق صناديق الإدخال */
+    /* تنسيق صناديق إدخال النصوص */
     .stTextInput input, .stTextArea textarea {
         background-color: #21262d !important;
         color: #ffffff !important;
@@ -32,8 +34,14 @@ st.markdown(
         color: #ffffff !important;
     }
     
-    /* النصوص العامة والعناوين */
+    /* النصوص العامة والعناوين لضمان وضوحها باللون الأبيض */
     h1, h2, h3, h4, h5, h6, p, span, label {
+        color: #ffffff !important;
+    }
+    
+    /* تنسيق صندوق الإرسال السفلي */
+    .stChatInput input {
+        background-color: #21262d !important;
         color: #ffffff !important;
     }
     </style>
@@ -41,4 +49,34 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 3. ابدأ بقية كود وتصميم تطبيقك هنا...
+# 3. محتوى الشريط الجانبي (Sidebar)
+with st.sidebar:
+  st.markdown("### TOMA CHAT Pro")
+  st.markdown("---")
+
+  groq_key = st.text_input("Groq API Key:", type="password")
+
+  st.markdown("---")
+  web_search = st.checkbox("بحث الويب المباشر")
+  deep_search = st.checkbox("وضع البحث العميق")
+  voice_reading = st.checkbox("القراءة الصوتية التلقائية")
+  html_preview = st.checkbox("HTML/Web معاينة أكواد", value=True)
+
+  st.markdown("---")
+  model_choice = st.selectbox(
+      "النموذج الذكي:", ["llama-3.3-70b-versatile", "mixtral-8x7b-32768"]
+  )
+  persona_choice = st.selectbox("TOMA: شخصية", ["مساعد عام ذكي وودود"])
+
+# 4. الواجهة الرئيسية للدردشة
+st.title("TOMA CHAT Pro")
+
+# خانة كتابة الرسائل في أسفل الشاشة
+user_input = st.chat_input("... اكتب رسالتك هنا")
+
+if user_input:
+  with st.chat_message("user"):
+    st.write(user_input)
+
+  with st.chat_message("assistant"):
+    st.write("جاري المعالجة...")
