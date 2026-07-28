@@ -64,15 +64,36 @@ st.markdown(
         border: 1px solid #30363d;
         direction: rtl;
     }
+    
+    /* تنسيق حاوية الشعار */
+    .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid #30363d;
+        margin-bottom: 15px;
+    }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# 3. الشريط الجانبي (Sidebar)
+# 3. الشريط الجانبي (Sidebar) مع الشعار
 with st.sidebar:
-    st.markdown("### TOMA CHAT Pro")
-    st.markdown("---")
+    # تصميم الشعار (Logo) باستخدام HTML/CSS داخل الشريط الجانبي
+    st.markdown(
+        """
+        <div class="logo-container">
+            <span style="font-size: 28px;">🤖</span>
+            <div>
+                <h3 style="margin: 0; font-size: 18px; color: #ffffff;">TOMA CHAT</h3>
+                <p style="margin: 0; font-size: 11px; color: #8b949e;">Pro AI Assistant</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     groq_key = st.text_input("مفتاح Groq API:", type="password")
 
