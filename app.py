@@ -7,7 +7,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. إعداد الشريط الجانبي والشعار واختيار الثيم أولاً لضمان سلاسة التحميل
+# 2. إعداد الشريط الجانبي والشعار واختيار الثيم
 with st.sidebar:
     try:
         st.image("logo.png", use_column_width=True)
@@ -36,42 +36,55 @@ else:
     input_bg = "#ffffff"
     border_color = "#d1d5db"
 
-# 3. حقن الـ CSS المتقدم وتنسيق الاتجاه (RTL)
+# 3. حقن الـ CSS المعدل لتصحيح مكان الشريط الجانبي ودعم الكتابة العربية
 st.markdown(
     f"""
     <style>
-    html, body, [class*="css"] {{
-        direction: rtl;
-        text-align: right;
-    }}
+    /* خلفية التطبيق العامة */
     .stApp {{
         background-color: {bg_color};
         color: {text_color};
     }}
+    
+    /* بقاء الشريط الجانبي في مكانه الطبيعي (اليسار) مع دعم النصوص العربية بداخله */
     [data-testid="stSidebar"] {{
         background-color: {sidebar_bg};
         color: {text_color};
         direction: rtl;
         text-align: right;
     }}
+    
+    /* تنسيق الواجهة الرئيسية لتكون متوافقة مع العربية */
+    .main .block-container {{
+        direction: rtl;
+        text-align: right;
+    }}
+
     .stTextInput input, .stTextArea textarea {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
         border-color: {border_color} !important;
+        direction: rtl;
         text-align: right;
     }}
+    
     .stSelectbox div[data-baseweb="select"] {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
+        direction: rtl;
     }}
+    
     h1, h2, h3, h4, h5, h6, p, span, label {{
         color: {text_color} !important;
     }}
+    
     .stChatInput input {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
+        direction: rtl;
         text-align: right;
     }}
+    
     .streamlit-expanderHeader {{
         background-color: {sidebar_bg} !important;
         color: {text_color} !important;
@@ -129,7 +142,7 @@ with st.expander("🛠️ لوحة الأدوات والمرفقات الذكي�
     
     col_img1, col_img2 = st.columns([3, 1])
     with col_img1:
-        image_prompt = st.text_input("وصف الصورة المراد توليدها:", placeholder="مثال: شعار تقني مضيء بتصميم مستقبلية...")
+        image_prompt = st.text_input("وصف الصورة المراد توليدها:", placeholder="مثال: شعار تقني مضيء بتصميم مستقبلي...")
     with col_img2:
         st.write("")
         st.write("")
@@ -138,7 +151,6 @@ with st.expander("🛠️ لوحة الأدوات والمرفقات الذكي�
     if gen_btn:
         if image_prompt:
             with st.spinner("جاري تصميم وتوليد الصورة بدقة عالية..."):
-                # محاكاة نجاح توليد الصورة
                 st.success("تم توليد الصورة بنجاح!")
                 st.image("https://via.placeholder.com/500x300.png?text=Generated+AI+Image+Preview", caption=image_prompt)
         else:
@@ -148,30 +160,23 @@ with st.expander("🛠️ لوحة الأدوات والمرفقات الذكي�
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# عرض سجل المحادثات السابق
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# صندوق إدخال الرسائل الذكي في أسفل الشاشة
 user_input = st.chat_input("... اكتب رسالتك هنا أو اطلب شيئاً من TOMA")
 
 if user_input:
-    # التحقق من إدخال مفتاح الـ API كإجراء احترافي
     if not groq_key:
         st.toast("⚠️ تنبيه: لم تقم بإدخال مفتاح Groq API في الشريط الجانبي!", icon="🚨")
     
-    # تخزين وعرض رسالة المستخدم
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # رد المساعد الذكي
     with st.chat_message("assistant"):
         with st.spinner("TOMA يفكر ويقوم بإعداد الرد..."):
-            # منطقة معالجة الرد البرمجي
             if groq_key:
-                # هنا يتم دمج استدعاء مكتبة groq الفعلية لاحقاً
                 bot_response = f"أهلاً بك يا نبيل! لقد استلمت رسالتك وأعمل بنموذج ({model_choice}) مع تفعيل شخصية ({persona_choice}). كيف يمكنني مساعدتك أكثر في مشروعك؟"
             else:
                 bot_response = "أهلاً بك! يرجى إدخال مفتاح `Groq API Key` من الشريط الجانبي لكي أتمكن من الرد عليك بشكل كامل."
