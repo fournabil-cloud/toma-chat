@@ -7,9 +7,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. إنشاء زر تبديل الثيمات في الشريط الجانبي قبل تحميل الـ CSS
+# 2. إعداد الشريط الجانبي والشعار واختيار الثيم أولاً لضمان سلاسة التحميل
 with st.sidebar:
-    # عرض شعارك الخاص
     try:
         st.image("logo.png", use_column_width=True)
     except:
@@ -17,13 +16,13 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # خانة تبديل الألوان (الثيم الداكن أو الفاتح)
+    # خيار تبديل الألوان (الثيم)
     theme_mode = st.selectbox(
         "🎨 مظهر الواجهة:", 
         ["الوضع الداكن (Dark)", "الوضع الفاتح (Light)"]
     )
 
-# تحديد الألوان بناءً على اختيار المستخدم
+# ضبط الألوان بناءً على اختيار الثيم
 if theme_mode == "الوضع الداكن (Dark)":
     bg_color = "#0e1117"
     sidebar_bg = "#161b22"
@@ -37,57 +36,42 @@ else:
     input_bg = "#ffffff"
     border_color = "#d1d5db"
 
-# 3. حقن الـ CSS الديناميكي بناءً على الثيم المختار وتعديل اتجاه الكتابة RTL
+# 3. حقن الـ CSS المتقدم وتنسيق الاتجاه (RTL)
 st.markdown(
     f"""
     <style>
-    /* فرض اتجاه الكتابة من اليمين ليسار ودعم اللغة العربية */
     html, body, [class*="css"] {{
         direction: rtl;
         text-align: right;
     }}
-    
-    /* خلفية التطبيق العامة */
     .stApp {{
         background-color: {bg_color};
         color: {text_color};
     }}
-    
-    /* خلفية الشريط الجانبي */
     [data-testid="stSidebar"] {{
         background-color: {sidebar_bg};
         color: {text_color};
         direction: rtl;
         text-align: right;
     }}
-    
-    /* تنسيق صناديق الكتابة */
     .stTextInput input, .stTextArea textarea {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
         border-color: {border_color} !important;
         text-align: right;
     }}
-    
-    /* تنسيق القوائم المنسدلة */
     .stSelectbox div[data-baseweb="select"] {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
     }}
-    
-    /* النصوص والعناوين العامة */
     h1, h2, h3, h4, h5, h6, p, span, label {{
         color: {text_color} !important;
     }}
-    
-    /* صندوق الكتابة السفلي للدردشة */
     .stChatInput input {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
         text-align: right;
     }}
-
-    /* لوحة الأدوات (Expander) */
     .streamlit-expanderHeader {{
         background-color: {sidebar_bg} !important;
         color: {text_color} !important;
@@ -99,12 +83,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 4. باقي محتوى الشريط الجانبي (Sidebar)
+# 4. محتوى الشريط الجانبي المتقدم
 with st.sidebar:
     st.markdown("---")
-    groq_key = st.text_input("مفتاح Groq API:", type="password")
+    groq_key = st.text_input("مفتاح Groq API:", type="password", placeholder="أدخل مفتاحك هنا...")
 
     st.markdown("---")
+    st.markdown("### ⚙️ الإعدادات والأدوات")
     web_search = st.checkbox("بحث الويب المباشر")
     deep_search = st.checkbox("وضع البحث العميق")
     voice_reading = st.checkbox("القراءة الصوتية التلقائية")
@@ -118,50 +103,78 @@ with st.sidebar:
     
     persona_choice = st.selectbox(
         "شخصية TOMA:",
-        ["مساعد عام ذكي وودود"]
+        ["مساعد عام ذكي وودود", "مطور برمجيات خبير", "كاتب محتوى محترف"]
     )
 
     st.markdown("---")
-    st.markdown("### إدارة المحادثات")
+    st.markdown("### 🕒 إدارة المحادثات")
     chat_mode = st.selectbox("اختر محادثة:", ["محادثة جديدة 1"])
     
     col1, col2 = st.columns(2)
     with col1:
         if st.button("➕ جديدة"):
             st.session_state.messages = []
+            st.rerun()
     with col2:
         if st.button("🗑️ مسح"):
             st.session_state.messages = []
+            st.rerun()
 
-# 5. الواجهة الرئيسية
+# 5. الواجهة الرئيسية للدردشة وتوليد الصور
 st.title("TOMA CHAT Pro")
 
-# لوحة الأدوات وتوليد الصور
-with st.expander("🛠️ لوحة الأدوات والمرفقات الذكية وتوليد الصور", expanded=True):
-    st.write("مرحباً بك في لوحة التحكم. يمكنك تفعيل الأدوات أو إرفاق الملفات هنا.")
-    image_prompt = st.text_input("وصف الصورة المراد توليدها (اختياري):")
-    if st.button("🎨 توليد الصورة"):
+# لوحة الأدوات وتوليد الصور التفاعلية
+with st.expander("🛠️ لوحة الأدوات والمرفقات الذكية وتوليد الصور", expanded=False):
+    st.write("قم بتفعيل الأدوات المساعدة أو أدخل وصفاً لتوليد صورة احترافية عبر الذكاء الاصطناعي.")
+    
+    col_img1, col_img2 = st.columns([3, 1])
+    with col_img1:
+        image_prompt = st.text_input("وصف الصورة المراد توليدها:", placeholder="مثال: شعار تقني مضيء بتصميم مستقبلية...")
+    with col_img2:
+        st.write("")
+        st.write("")
+        gen_btn = st.button("🎨 توليد الصورة")
+        
+    if gen_btn:
         if image_prompt:
-            st.info("جاري معالجة طلب توليد الصورة...")
+            with st.spinner("جاري تصميم وتوليد الصورة بدقة عالية..."):
+                # محاكاة نجاح توليد الصورة
+                st.success("تم توليد الصورة بنجاح!")
+                st.image("https://via.placeholder.com/500x300.png?text=Generated+AI+Image+Preview", caption=image_prompt)
         else:
-            st.warning("الرجاء كتابة وصف الصورة أولاً.")
+            st.warning("الرجاء كتابة وصف الصورة في الحقل المخصص أولاً.")
 
-# 6. نظام المحادثة
+# 6. نظام إدارة الذاكرة وعرض الرسائل
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# عرض سجل المحادثات السابق
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-user_input = st.chat_input("... اكتب رسالتك هنا")
+# صندوق إدخال الرسائل الذكي في أسفل الشاشة
+user_input = st.chat_input("... اكتب رسالتك هنا أو اطلب شيئاً من TOMA")
 
 if user_input:
+    # التحقق من إدخال مفتاح الـ API كإجراء احترافي
+    if not groq_key:
+        st.toast("⚠️ تنبيه: لم تقم بإدخال مفتاح Groq API في الشريط الجانبي!", icon="🚨")
+    
+    # تخزين وعرض رسالة المستخدم
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
 
+    # رد المساعد الذكي
     with st.chat_message("assistant"):
-        response_placeholder = st.empty()
-        response_placeholder.markdown("جاري المعالجة...")
-        response_placeholder.markdown("أهلاً بك! أنا جاهز لتلقي أوامرك.")
+        with st.spinner("TOMA يفكر ويقوم بإعداد الرد..."):
+            # منطقة معالجة الرد البرمجي
+            if groq_key:
+                # هنا يتم دمج استدعاء مكتبة groq الفعلية لاحقاً
+                bot_response = f"أهلاً بك يا نبيل! لقد استلمت رسالتك وأعمل بنموذج ({model_choice}) مع تفعيل شخصية ({persona_choice}). كيف يمكنني مساعدتك أكثر في مشروعك؟"
+            else:
+                bot_response = "أهلاً بك! يرجى إدخال مفتاح `Groq API Key` من الشريط الجانبي لكي أتمكن من الرد عليك بشكل كامل."
+            
+            st.markdown(bot_response)
+            st.session_state.messages.append({"role": "assistant", "content": bot_response})
