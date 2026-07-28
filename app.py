@@ -8,12 +8,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. إعداد الشريط الجانبي واختيار الثيم أولاً
+# 2. إعداد الشريط الجانبي واختيار الثيم والشعار
 with st.sidebar:
+    # محاولة عرض الشعار بالاسم الحقيقي المعتمد لد لديك
     try:
-        st.image("logo.png", use_column_width=True)
-    except:
         st.image("ChatGPT Image 27 يوليو 2026، 10_39_53 م.png", use_column_width=True)
+    except:
+        try:
+            st.image("logo.png", use_column_width=True)
+        except:
+            st.markdown("### 🤖 TOMA CHAT")
 
     st.markdown("---")
     
@@ -36,7 +40,7 @@ else:
     input_bg = "#ffffff"
     border_color = "#d1d5db"
 
-# 3. تنسيق الواجهة والـ CSS العام
+# 3. تنسيق الواجهة والـ CSS (مع ضبط محاذاة الشات بشكل طبيعي وصحيح)
 st.markdown(
     f"""
     <style>
@@ -47,10 +51,6 @@ st.markdown(
     [data-testid="stSidebar"] {{
         background-color: {sidebar_bg};
         color: {text_color};
-        direction: rtl;
-        text-align: right;
-    }}
-    .main .block-container {{
         direction: rtl;
         text-align: right;
     }}
@@ -66,7 +66,7 @@ st.markdown(
         color: {text_color} !important;
         direction: rtl;
     }}
-    h1, h2, h3, h4, h5, h6, p, span, label {{
+    h1, h2, h3, h4, h5, h6, label {{
         color: {text_color} !important;
     }}
     .stChatInput input {{
@@ -80,6 +80,11 @@ st.markdown(
         color: {text_color} !important;
         border: 1px solid {border_color};
         direction: rtl;
+    }}
+    /* ضمان ظهور رسائل الدردشة بشكل مقروء وصحيح للغة العربية */
+    .stChatMessage {{
+        direction: rtl;
+        text-align: right;
     }}
     </style>
     """,
